@@ -1,0 +1,24 @@
+<section ng-controller="CrawlsController">
+  <div class="page-header">
+    <h1>New Crawl</h1>
+  </div>
+  <div class="col-md-12">
+    <form name="crawlForm" class="form-horizontal" ng-submit="create(crawlForm.$valid)" novalidate>
+      <fieldset>
+        <div class="form-group" show-errors>
+          <label for="status">ステータス</label>
+          <input name="status" type="text" ng-model="status" id="status" class="form-control" placeholder="あいうえお" required>
+          <div ng-messages="crawlForm.status.$error" role="alert">
+            <p class="help-block error-text" ng-message="required">Crawl ステータス is required.</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <input type="submit" class="btn btn-default">
+        </div>
+        <div ng-show="error" class="text-danger">
+          <strong ng-bind="error"></strong>
+        </div>
+      </fieldset>
+    </form>
+  </div>
+</section>

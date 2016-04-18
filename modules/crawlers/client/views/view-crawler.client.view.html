@@ -1,0 +1,78 @@
+<section ng-controller="CrawlersController" ng-init="pollData();findOne();">
+  <script type="text/ng-template" id="myModalContent.html">
+    <div class="modal-header">
+      <button type="button" class="close" aria-label="Close" ng-click="cancel()"><span aria-hidden="true">&times;</span></button>
+      <p class="modal-title">Are you sure you want to delete?</p>
+    </div>
+    <div class="modal-footer">
+      <a class="btn" type="button" ng-click="cancel()">Cancel</a>
+      <button class="btn btn-warning" type="button" ng-click="ok()">DELETE</button>
+    </div>
+  </script>
+  
+  <div class="row page-header">
+    <div class="col-md-10">
+      <p class="lead">
+        <strong>
+          <a ui-sref="crawlers.view({crawlerId: crawler._id})">{{crawler.name}}</a>
+        </strong>
+      </p>
+      <small class="text-muted">
+        <span>Source URL : <a href="{{crawler.url}}" target="_blank">{{crawler.url}}</a> ─ </span>
+        <a href="/api/crawlers/{{crawler._id}}/data.json" target="_blank">json</a> | 
+        <a href="/api/crawlers/{{crawler._id}}/data.csv" target="_blank">csv</a>
+      </small></br>
+      <small>
+        <em class="text-muted">
+          Created at
+          <span ng-bind="crawler.created | date:'yyyy-MM-dd HH:mm:ss Z'"></span>
+          by
+          <span ng-bind="crawler.user.displayName"></span>
+        </em>
+      </small>
+    </div>
+    <div class="col-md-2 text-right">
+      <div ng-show="authentication.user._id == crawler.user._id">
+        <a class="btn btn-link" ui-sref="crawlers.edit({crawlerId: crawler._id})">
+          Edit API
+        </a>
+        <a class="btn btn-link" ng-click="openDeleteConfirmationModal()">
+          Delete
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-5">
+      <i class="glyphicon glyphicon-info-sign"></i> <strong><span class="" ng-bind="data.status | uppercase"></span></strong>
+      <small ng-hide="data.progress.total == 0"> - Crawled: {{data.progress.process}} / Scheduled: {{data.progress.total}}</small>
+      <span ng-show="data.properties.length >= 1 && (data.status == 'finished' || data.status == 'none')">
+        <a class="btn btn-link btn-xs" ng-click="now()" ng-show="authentication.user._id == crawler.user._id">
+          <i class="glyphicon glyphicon-play"></i> Crawl Now
+        </a>
+      </span>
+    </div>
+    <div class="col-md-7">
+      <div ng-hide="data.progress.total == 0">
+        <progressbar max="data.progress.total" value="data.progress.process" type="info"><span style="color:white; white-space:nowrap;" ng-hide="data.progress.process == 0">{{100 * data.progress.process / data.progress.total | number:0}}%</span></progressbar>
+      </div>
+    </div>
+  </div>
+  
+  <div class="list-group">
+    <div ng-repeat="crawl in data.crawls | orderBy:'-created'" class="list-group-item">
+      <a ui-sref="crawls.view({crawlId: crawl._id})" class="btn btn-link">
+        <i class="glyphicon glyphicon-signal" style="margin-right:5px;"><strong style="margin-left:5px;">Data</strong></i>
+      </a>
+      <a ui-sref="crawls.log({crawlId: crawl._id})" class="btn btn-link">
+        <i class="glyphicon glyphicon-list"><strong style="margin-left:5px;">Log</strong></i>
+      </a>
+      <small class="list-group-item-text text-muted">
+        crawled on
+        <span ng-bind="crawl.updated | date:'yyyy-MM-dd HH:mm:ss Z'"></span>
+      </small>
+      <p class="list-group-item-text" ng-bind="crawl.status"></p>
+    </div>
+  </div>
+  
+</section>

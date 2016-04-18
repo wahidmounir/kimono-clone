@@ -1,0 +1,89 @@
+<section ng-controller="CrawlsController" ng-init="findOne();findLogs();">
+  <script type="text/ng-template" id="myModalContent.html">
+    <div class="modal-header">
+      <button type="button" class="close" aria-label="Close" ng-click="cancel()"><span aria-hidden="true">&times;</span></button>
+      <p class="modal-title">Are you sure you want to delete?</p>
+    </div>
+    <div class="modal-footer">
+      <a class="btn" type="button" ng-click="cancel()">Cancel</a>
+      <button class="btn btn-warning" type="button" ng-click="ok()">DELETE</button>
+    </div>
+  </script>
+
+  <div class="row page-header">
+    <div class="col-md-10">
+      <p class="lead">
+        <strong>
+          <a ui-sref="crawlers.view({crawlerId: crawl.crawler._id})">{{crawl.crawler.name}}</a>
+        </strong>
+      </p>
+      <small class="text-muted">
+        <span>Source URL : <a href="{{crawl.crawler.url}}" target="_blank">{{crawl.crawler.url}}</a> ─ </span>
+        <a href="/api/crawlers/{{crawl.crawler._id}}/data.json" target="_blank">json</a> | 
+        <a href="/api/crawlers/{{crawl.crawler._id}}/data.csv" target="_blank">csv</a>
+      </small></br>
+      <small>
+        <em class="text-muted">
+          Created at
+          <span ng-bind="crawl.crawler.created | date:'yyyy-MM-dd HH:mm:ss Z'"></span>
+          by
+          <span ng-bind="crawl.crawler.user.displayName"></span>
+        </em>
+      </small>
+    </div>
+    <div class="col-md-2 text-right">
+    </div>
+  </div>
+  
+  <div class="pull-right" ng-show="authentication.user._id == crawl.user._id">
+    <small>
+      <em class="text-muted">
+        Crawled on
+        <span ng-bind="crawl.created | date:'mediumDate'"></span>
+        by
+        <span ng-bind="crawl.user.displayName"></span>
+      </em>
+    </small>
+    <a class="btn btn-link" ng-click="openDeleteConfirmationModal()">
+      Delete
+    </a>
+  </div>
+  
+  <div>
+    <a ui-sref="crawls.view({crawlId: crawl._id})" class="btn btn-link">
+      <i class="glyphicon glyphicon-signal" style="margin-right:5px;"><strong style="margin-left:5px;">Data</strong></i>
+    </a>
+    <a ui-sref="crawls.log({crawlId: crawl._id})" class="btn btn-link disabled">
+      <i class="glyphicon glyphicon-list"><strong style="margin-left:5px;">Log</strong></i>
+    </a>
+  </div>
+  
+  <pagination 
+    total-items="logs.data.length"
+    items-per-page="itemsPerPage"
+    ng-model="currentPageLog"
+    class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"
+    ></pagination>
+    
+  <table class="table table-striped table-hover" fixed-header>
+    <thead>
+      <tr>
+        <th>Message</th>
+        <th>Status</th>
+        <th>Row</th>
+        <th>URL</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="row in logs.data | offset:(currentPageLog-1)*itemsPerPage | limitTo:itemsPerPage">
+        <td >{{row.message}}</td>
+        <td >{{row.meta.status}}</td>
+        <td >{{row.meta.row}}</td>
+        <td ><a href="{{row.meta.url}}" target="_blank">{{row.meta.url}}</a></td>
+        <td >{{row.timestamp}}</td>
+      </tr>
+    </tbody>
+  </table>
+  
+</section>

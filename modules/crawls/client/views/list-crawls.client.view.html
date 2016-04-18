@@ -1,0 +1,19 @@
+<section ng-controller="CrawlsController" ng-init="find()">
+  <div class="page-header">
+    <h1>Crawls</h1>
+  </div>
+  <div class="list-group">
+    <a ng-repeat="crawl in crawls" ui-sref="crawls.view({crawlId: crawl._id})" class="list-group-item">
+      <small class="list-group-item-text">
+        Posted on
+        <span ng-bind="crawl.created | date:'yyyy-MM-dd HH:mm:ss Z'"></span>
+        by
+        <span ng-bind="crawl.user.displayName"></span>
+      </small>
+      <h4 class="list-group-item-heading" ng-bind="crawl.name"></h4>
+    </a>
+  </div>
+  <div class="alert alert-warning text-center" ng-if="crawls.$resolved && !crawls.length">
+    No crawlers yet, why don't you <a ui-sref="crawls.create">create one</a>?
+  </div>
+</section>
