@@ -46,7 +46,7 @@
     <div class="col-md-5">
       <i class="glyphicon glyphicon-info-sign"></i> <strong><span class="" ng-bind="data.status | uppercase"></span></strong>
       <small ng-hide="data.progress.total == 0"> - Crawled: {{data.progress.process}} / Scheduled: {{data.progress.total}}</small>
-      <span ng-show="data.properties.length >= 1 && (data.status == 'finished' || data.status == 'none')">
+      <span ng-show="data.properties.length >= 1">
         <a class="btn btn-link btn-xs" ng-click="now()" ng-show="authentication.user._id == crawler.user._id">
           <i class="glyphicon glyphicon-play"></i> Crawl Now
         </a>

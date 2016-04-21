@@ -1,0 +1,54 @@
+<section ng-controller="LogsController" ng-init="getLogs()">
+  <style>
+  .popover {
+    max-width: 500px;
+  }
+  </style>
+  <script type="text/ng-template" id="myPopoverTemplate.html">
+    <div><pre style="font-size: 60%;">{{log.meta|json}}</pre></div>
+  </script>
+  
+  <div class="page-header">
+    <h1>Logs</h1>
+  </div>
+  <div>
+    <pagination total-items="totalItems" ng-model="currentPage" items-per-page="itemsPerPage" max-size="20" boundary-links="true" rotate="false" ng-change="pageChanged()" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"></pagination>
+  </div>
+  <div>
+    <label>Filter: </label>
+    Level = 
+      <a ui-sref="logs.list({level: ''})">All</a> - 
+      <a ui-sref="logs.list({level: 'info'})">Info</a> - 
+      <a ui-sref="logs.list({level: 'error'})">Error</a>
+  </div>
+  
+  <table class="table" style="font-size: 80%;">
+    <thead>
+      <tr>
+        <th>Level</th>
+        <th>Date</th>
+        <th>API</th>
+        <th>Message</th>
+        <th>User</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="log in logs" ng-class="whatClassIsIt(log.level);">
+        <td>
+          {{log.level}}
+        </td>
+        <td><span ng-bind="log.timestamp | date:'yyyy-MM-dd HH:mm:ss Z'"></span></td>
+        <td>
+          {{log.meta.crawlerName}}
+        </td>
+        <td> 
+          <a popover-template="'myPopoverTemplate.html'">{{log.message}}</a>
+        </td>
+        <td><span ng-bind="log.meta.userDisplayName"></span></td>
+      </tr>
+      <tr ng-if="logs.$resolved && !logs.length">
+        <td colspan="4">No logs yet.</td>
+      </tr>
+    </tbody>
+  </table>
+</section>

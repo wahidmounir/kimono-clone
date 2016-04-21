@@ -85,14 +85,12 @@ exports.update = function (req, res) {
         });
       } else {
         req.crawler = crawler;
-        exports.cancelRepeatJob(req, res);
-        if (req.body.frequency.selected !== 'manual') {
-          exports.reserve(req, res);
-        }
-        else {
-          exports.cancelRepeatJob(req, res);
-        }
-        res.json(crawler);
+        exports.cancelRepeatJob([{req:req}, function () {
+          if (req.body.frequency.selected !== 'manual') {
+            exports.reserve(req, res);
+          }
+          res.json(crawler);
+        }]);
       }
     });
   }]);
@@ -392,40 +390,40 @@ function strToValueFrequency (str) {
   return str.replace('-', ' ');
 }
 
-exports.cancelRepeatJob = function (req, res) {
+exports.cancelRepeatJob = function (args) {
   agenda.jobs({
-    name: 'Crawler Reserve', 'data.crawler_id': req.crawler._id.toString()
+    name: 'Crawler Reserve', 'data.crawler_id': args[0].req.crawler._id.toString()
   }, function cancelRepeatJobReserveJobs(err, jobs) {
     if (err) {
-      logger.error('[crawler] Cannot be canceled any reserved jobs.', {crawlerId: req.crawler._id.toString(), crawlerName:req.crawler.name, user:req.crawler.user.toObject(), error:err});
+      logger.error('[crawler] Cannot be canceled any reserved jobs.', {crawlerId: args[0].req.crawler._id.toString(), crawlerName:args[0].req.crawler.name, user:args[0].req.crawler.user.toObject(), error:err});
     }
-    else if (jobs.length === 0) {
-      logger.info('[crawler] Should be canceled any reserved jobs are not found.', {crawlerId: req.crawler._id.toString(), crawlerName:req.crawler.name, user:req.crawler.user.toObject()});
-    }
-    jobs.forEach (function (job) {
-      job.remove(function cancelRepeatJobReserveJobsRemove(err) {
-        if (err) {logger.error('Jobs cannot be removed.', {crawlerId: req.crawler._id.toString(), crawlerName:req.crawler.name, user:req.crawler.user.toObject(), error:err});}
-        logger.info('[crawler] Reserved job is removed: crawler_id = ', {crawlerId: req.crawler._id.toString(), crawlerName:req.crawler.name, user:req.crawler.user.toObject()});
+    else if (jobs.length !== 0) {
+      logger.info('[crawler] Should be canceled any reserved jobs are not found.', {crawlerId: args[0].req.crawler._id.toString(), crawlerName:args[0].req.crawler.name, user:args[0].req.crawler.user.toObject()});
+      jobs.forEach (function (job) {
+        job.remove(function cancelRepeatJobReserveJobsRemove(err) {
+          if (err) {logger.error('Jobs cannot be removed.', {crawlerId: args[0].req.crawler._id.toString(), crawlerName:args[0].req.crawler.name, user:args[0].req.crawler.user.toObject(), error:err});}
+          logger.info('[crawler] Reserved job is removed: crawler_id = ', {crawlerId: args[0].req.crawler._id.toString(), crawlerName:args[0].req.crawler.name, user:args[0].req.crawler.user.toObject()});
+        });
       });
+    }
+    
+    agenda.jobs({
+      name: 'Crawler Crawl', 'data.crawler_id': args[0].req.crawler._id.toString()
+    }, function cancelRepeatJobJobs(err, jobs) {
+      if (err) {
+        logger.error('[crawler] Cannot be canceled any jobs.', {crawlerId: args[0].req.crawler._id.toString(), crawlerName:args[0].req.crawler.name, user:args[0].req.crawler.user.toObject(), error:err});
+      }
+      else if (jobs.length !== 0) {
+        jobs.forEach (function (job) {
+          job.remove(function cancelRepeatJobJobsRemove(err) {
+            if (err) {logger.error('[crawler] Jobs cannot be removed.', {crawlerId: args[0].req.crawler._id.toString(), crawlerName:args[0].req.crawler.name, user:args[0].req.crawler.user.toObject(), error:err});}
+            logger.info('[crawler] Job is removed: crawler_id = ', {crawlerId: args[0].req.crawler._id.toString(), crawlerName:args[0].req.crawler.name, user:args[0].req.crawler.user.toObject()});
+          });
+        });
+      }
     });
   });
-  
-  agenda.jobs({
-    name: 'Crawler Crawl', 'data.crawler_id': req.crawler._id.toString()
-  }, function cancelRepeatJobJobs(err, jobs) {
-    if (err) {
-      logger.error('[crawler] Cannot be canceled any jobs.', {crawlerId: req.crawler._id.toString(), crawlerName:req.crawler.name, user:req.crawler.user.toObject(), error:err});
-    }
-    else if (jobs.length === 0) {
-      logger.info('[crawler] Should be canceled any jobs are not found.', {crawlerId: req.crawler._id.toString(), crawlerName:req.crawler.name, user:req.crawler.user.toObject()});
-    }
-    jobs.forEach (function (job) {
-      job.remove(function cancelRepeatJobJobsRemove(err) {
-        if (err) {logger.error('[crawler] Jobs cannot be removed.', {crawlerId: req.crawler._id.toString(), crawlerName:req.crawler.name, user:req.crawler.user.toObject(), error:err});}
-        logger.info('[crawler] Job is removed: crawler_id = ', {crawlerId: req.crawler._id.toString(), crawlerName:req.crawler.name, user:req.crawler.user.toObject()});
-      });
-    });
-  });
+  args[1]();
 };
 
 /**
@@ -439,26 +437,27 @@ exports.cancelRepeatJob = function (req, res) {
  */
 exports.reserve = function (req, res) {
   // jobのキャンセル
-  exports.cancelRepeatJob(req, res);
+  exports.cancelRepeatJob([{req:req}, function () {
   
-  // jobの予約
-  var job = agenda.create('Crawler Reserve', {
-    crawler_id: req.crawler._id.toString(),
-    crawler_name: req.crawler.name,
-    user: req.crawler.user.toObject()
-  });
-  job.schedule('20 seconds');
-  job.repeatEvery(strToValueFrequency(req.crawler.frequency.selected));
-  job.unique({'data.type': 'active', 'data.crawler_id': req.crawler._id.toString()});
-  job.save(function reserveSave(err){
-    if (err) {
-      logger.error('[crawler] Queue cannot reserve.', {crawlerId: req.crawler._id.toString(), crawlerName:req.crawler.name, userDisplayName:req.crawler.user.displayName, error:err});
-    }
-    if( !err ) {
-      logger.info( 'Job reserved: crawler id = '+req.crawler._id, {crawlerId: req.crawler._id.toString(), crawlerName:req.crawler.name, userDisplayName:req.crawler.displayName});
-      exports.updateCrawlerStatus(req.crawler._id, 'reserved', req.user.toObject());
-    }
-  });
+    // jobの予約
+    var job = agenda.create('Crawler Reserve', {
+      crawler_id: req.crawler._id.toString(),
+      crawler_name: req.crawler.name,
+      user: req.crawler.user.toObject()
+    });
+    job.schedule('20 seconds');
+    job.repeatEvery(strToValueFrequency(req.crawler.frequency.selected));
+    job.unique({'data.type': 'active', 'data.crawler_id': req.crawler._id.toString()});
+    job.save(function reserveSave(err){
+      if (err) {
+        logger.error('[crawler] Queue cannot reserve.', {crawlerId: req.crawler._id.toString(), crawlerName:req.crawler.name, userDisplayName:req.crawler.user.displayName, error:err});
+      }
+      if( !err ) {
+        logger.info( 'Job reserved: crawler id = '+req.crawler._id, {crawlerId: req.crawler._id.toString(), crawlerName:req.crawler.name, userDisplayName:req.crawler.displayName});
+        exports.updateCrawlerStatus(req.crawler._id, 'reserved', req.user.toObject());
+      }
+    });
+  }]);
 };
 
 agenda.define('Crawler Reserve', {concurrency: 1}, function ( job, done ) {
@@ -467,8 +466,9 @@ agenda.define('Crawler Reserve', {concurrency: 1}, function ( job, done ) {
 
 
 exports.now = function (req, res) {
-  exports.cancelRepeatJob(req, res);
-  exports.start({crawlerId: req.crawler._id.toString()}, function(){});
+  exports.cancelRepeatJob([{req:req}, function () {
+    exports.start({crawlerId: req.crawler._id.toString()}, function(){});
+  }]);
 };
 
 /**
@@ -548,5 +548,6 @@ exports.start = function (args, done) {
 };
 
 agenda.define('Crawler Crawl', {concurrency: 1}, function ( job, done ) {
+  console.log('Crawler Crawl');
   crawls.crawl(job,done);
 });

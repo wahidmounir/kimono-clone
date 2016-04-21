@@ -158,6 +158,7 @@ exports.start = function (args) {
 };
 
 exports.crawl = function (job, done) {
+  console.log(job.attrs.data.url);
   Crawler.findById(job.attrs.data.crawler_id).exec(function (err, pcrawler) {
     if (err) {
       done(err);
@@ -191,17 +192,34 @@ exports.crawl = function (job, done) {
           transport: 'http'
         },
         casper: {
-          logLevel: 'debug',
-          onResourceRequested: resourceRequested,
-          verbose: true
+          logLevel: 'debug'
         }
       }, function (err) {
-        if (err) {
-          var e = new Error('Failed to initialize SpookyJS');
-          e.details = err;
-          throw e;
-        }
+        spooky.start(job.attrs.data.url);
         
+        spooky.then(function () {
+          console.log(this.getTitle());
+        });
+        
+        spooky.run();
+      });
+      
+      // var spooky = new Spooky({
+      //   child: {
+      //     transport: 'http'
+      //   },
+      //   casper: {
+      //     logLevel: 'debug',
+      //     onResourceRequested: resourceRequested,
+      //     verbose: true
+      //   }
+      // }, function (err) {
+      //   if (err) {
+      //     var e = new Error('Failed to initialize SpookyJS');
+      //     e.details = err;
+      //     throw e;
+      //   }
+      //
         spooky.on('error', function (e, stack) {
           console.error(e);
           logger.error('[crawler - spooky] Internal error. / ', {crawlerId: job.attrs.data.crawler_id, crawlerName: job.attrs.data.crawlerName, error:e});
@@ -222,312 +240,312 @@ exports.crawl = function (job, done) {
             console.log(log.message.replace(/ \- .*/, ''));
           }
         });
-        
-        spooky.on('crawl.log', function (level, mess, meta) {
-          if (level === 'info') {
-            logger.info(mess, meta);
-          } else if (level === 'error') {
-            logger.error(mess, meta);
-          }
-        });
 
-        spooky.on('remote.message', function(msg) {
-          logger.debug('[crawler - spooky] Debug / ', {message:msg});
-        });
-  
-        spooky.on('forward', function(args) {
-          var job = agenda.create('Crawler Crawl', {
-            crawler_id: args.crawler_id,
-            crawlerName: args.crawlerName,
-            props: args.props,
-            basepath: args.basepath,
-            crawl_id: args.crawl_id,
-            userDisplayName: args.userDisplayName,
-            forwardSelPath: args.forwardSelPath,
-            forwardPagesMax: args.forwardPagesMax,
-            currentPageNum: args.currentPageNum,
-            url: args.url
-          });
-          logger.debug('[crawler - spooky] Forwarding next page...');
-          job.save();
-          done();
-        });
-  
-        spooky.on('save', function (crawlId, rec, crawlUrl, statusCode) {
-          Crawl.findById(crawlId).populate('user', 'displayName').populate('crawler').exec(function (err, crawl) {
-            if (err) {
-              logger.error('[crawler - spooky] Cannot be found.', {
-                crawlId: crawlId, 
-                crawlerName: crawl.crawler.name,
-                crawlerId: crawl.crawler._id.toString(),
-                userDisplayName: crawl.user.displayName,
-                error:err
-              });
-            } else if (!crawl || rec === null) {
-              logger.error('[crawler - spooky] No crawler with that identifier has been found.', {
-                crawlId: crawlId, 
-                crawlerId: crawl.crawler._id.toString(),
-                crawlerName: crawl.crawler.name,
-                userDisplayName: crawl.user.displayName
-              });
-            }
-            
-            // Save crawl log.
-            if (rec.length === 0) {
-              logger.error('Data not found.', {
-                type: 'crawlLog',
-                crawlId: crawlId, 
-                crawlerId: crawl.crawler._id.toString(),
-                crawlerName: crawl.crawler.name,
-                userDisplayName: crawl.user.displayName,
-                url: crawlUrl,
-                status: statusCode,
-                row: rec.length
-              });
-            } else {
-              logger.info('Success.', {
-                type: 'crawlLog',
-                crawlId: crawlId, 
-                crawlerId: crawl.crawler._id.toString(),
-                crawlerName: crawl.crawler.name,
-                userDisplayName: crawl.user.displayName,
-                url: crawlUrl,
-                status: statusCode,
-                row: rec.length
-              });
-            }
-            
-            // Retrieving last crawled index number and inserting one..
-            var lastindex = 0;
-            if (crawl.record.length >= 1) {
-              //crawl.record.sort(function(a, b) {
-              //  return (a['wac@@index'] < b['wac@@index']) ? -1 : 1;
-              //});
-              for (var r=0; r<crawl.record.length; r++) {
-                for (var c=0; c<crawl.record[r].length; c++) {
-                  if (crawl.record[r][c].name === 'wac@@index' && crawl.record[r][c].content > lastindex) {
-                    lastindex = crawl.record[r][c].content;
-                  }
-                }
-              }
-            }
-  
-            // Adding some special columns.
-            for (var i=0; i<rec.length; i++) {
-              // Generate and add md5 hash.
-              var hash = "";
-              for (var h=0; h<rec[i].length; h++) {
-                hash = hash+rec[i][h].content;
-              }
-              rec[i].push({name: 'wac@@hash', content: farmhash.fingerprint64(hash)});
-          
-              lastindex++;
-              rec[i].push({name: 'wac@@index', content: lastindex});
-    
-              // Merge the new record here.
-              crawl.record.push(rec[i]);
-            }
-            
-            crawl.updated = Date.now();
-            crawl.save(function (err) {
-              if (err) {
-                logger.error('[crawler - spooky] Cannot be saved.', {
-                  crawlId: crawlId, 
-                  crawlerId: crawl.crawler._id.toString(),
-                  crawlerName: crawl.crawler.name,
-                  userDisplayName: crawl.user.displayName,
-                  error:err
-                });
-              }
-              logger.info('[crawler - spooky] Crawl data saved.', {
-                  crawlId: crawlId, 
-                  crawlerId: crawl.crawler._id.toString(),
-                  crawlerName: crawl.crawler.name,
-                  userDisplayName: crawl.user.displayName
-              });
-            });
-          });
-        });
-
-        spooky.on('update', function (id, status) {
-          Crawler.findById(id).populate('user', 'displayName').exec(function (err, crawler) {
-            if (err) {
-              spooky.emit('error', err);
-            } else if (!crawler) {
-              spooky.emit('error', err);
-            }
-
-            if (crawler.status === "progress" && crawler.progress.process >= crawler.progress.total) {
-              crawler.status = "finished";
-            }
-            else {
-              crawler.status = status;
-            }
-      
-            crawler.save(function (err) {
-              if (err) {
-                spooky.emit('error', err);
-              }
-              logger.info('[crawler - spooky] Crawler status updated: status = '+status, {crawlerId: id, crawlerName:crawler.name, userDisplayName:crawler.user.displayName});
-            });
-          });
-        });
-
-        spooky.on('process', function () {
-          pcrawler.progress.process = pcrawler.progress.process+1;
-          pcrawler.save(function (err) {
-            if (err) {
-              done(err);
-              logger.error('[crawler] Cannot be saved', err);
-            }
-          });
-          this.emit('console', 'Done');
-          done();
-        });
-        
-        // Sort by each property's sort no.
-        job.attrs.data.props.sort(function(a, b) {
-          return (a.sort < b.sort) ? -1 : 1;
-        });
-  
-  
-        // Start crawl sequence below.
-        spooky.start(job.attrs.data.url);
-        //spooky.start();
-    
-        var props,basepath,crawl_id,crawler_id, crawl_url;
-        spooky.then([{
-          props: job.attrs.data.props,
-          basepath: job.attrs.data.basepath,
-          crawl_id: job.attrs.data.crawl_id,
-          crawl_url: job.attrs.data.url
-        }, function afterStart() {
-          var rrows = [];
-          rrows = this.evaluate(function evaluateStuffAfterStart(props, basepath) {
-            var elements;
-            var rows = [];
-    
-            if (basepath !== "") {
-              elements =  document.querySelectorAll(basepath);
-            } else {
-              elements = document.querySelectorAll('html');
-            }
-    
-            for (var i=0; i<elements.length; i++) {
-              var row = [];
-              for (var j=0; j<props.length; j++) {
-                var cols = [];
-                for (var key in props[j].matches) {
-                  var col;
-                  if (props[j].matches[key] === true) {
-                    var elem = elements[i].querySelector(props[j].path);
-                    if (elem === null) {continue;}
-                    if (key === 'src' || key === 'href' || key === 'alt' || key === 'content') {
-                      col = elem.getAttribute(key);
-                      if (col !== null) {
-                        cols.push({
-                          att: key, 
-                          con: col,
-                          path:props[j].path
-                        });
-                      }
-                    }
-                    if (key === 'text') {
-                      col = elem.innerText;
-                      if (col !== null) {
-                        cols.push({
-                          att: key, 
-                          con: col,
-                          path:props[j].path
-                        });
-                      }
-                    }
-                  }
-                }
-        
-                // If retrieved content has single attribute.
-                if (cols.length === 1) {
-                  row.push({name: props[j].name, content: cols[0].con});
-                }
-                // If retrieved content has multi attributes.
-                else if (cols.length >= 2) {
-                  for (var n=0; n<cols.length; n++) {
-                    row.push({name: props[j].name+"@"+cols[n].att, content: cols[n].con});
-                  }
-                }
-              }
-              console.log('Row: '+JSON.stringify(row));
-          
-              if (row.length >= 1) {
-                // Add crawling url.
-                row.push({name: 'wac@@url', content: location.href});
-                rows.push(row);
-              }
-            }
-    
-            return rows;
-          }, props, basepath);
-  
-          //this.emit('debug', 'Result - rows: ', rrows);
-          this.emit('save', crawl_id, rrows, crawl_url, this.status().currentHTTPStatus);
-        }]);
-        
-        var forwardSelPath, forwardPagesMax, currentPageNum, userDisplayName, crawlerName;
-        spooky.then([{
-          props: job.attrs.data.props,
-          basepath: job.attrs.data.basepath,
-          crawler_id: job.attrs.data.crawler_id,
-          crawlerName: job.attrs.data.crawlerName,
-          crawl_id: job.attrs.data.crawl_id,
-          crawl_url: job.attrs.data.url,
-          userDisplayName:  job.attrs.data.userDisplayName,
-          forwardSelPath: job.attrs.data.forwardSelPath,
-          forwardPagesMax: job.attrs.data.forwardPagesMax,
-          currentPageNum: job.attrs.data.currentPageNum
-        }, function forwarding() {
-          var url = "";
-          var elem = "";
-          if (forwardSelPath !== "" && currentPageNum < forwardPagesMax) {
-            url = this.evaluate(function evaluateStuffForwarding(forwardSelPath) {
-              if (forwardSelPath !== "") {
-                elem =  document.querySelector(forwardSelPath);
-              }
-              if (elem === null) {return false;}
-              else {return elem.getAttribute('href');}
-            }, forwardSelPath);
-            if (url) {
-              currentPageNum = currentPageNum + 1;
-              this.emit('forward', {
-                props: props,
-                basepath: basepath,
-                crawler_id: crawler_id,
-                crawlerName: crawlerName,
-                crawl_id: crawl_id,
-                userDisplayName: userDisplayName,
-                forwardSelPath: forwardSelPath,
-                forwardPagesMax: forwardPagesMax,
-                currentPageNum: currentPageNum,
-                url: url
-              });
-            } else {
-              this.emit('debug','finishing crawl...', {current: currentPageNum, max:forwardPagesMax});
-              this.emit('process');
-            }
-          } else {
-            this.emit('debug','finishing crawl...', {current: currentPageNum, max:forwardPagesMax});
-            this.emit('process');
-          }
-        }]);
-        
-        spooky.then([{
-          crawler_id: job.attrs.data.crawler_id
-        }, function afterSave() {
-          this.emit('update', crawler_id, 'progress');
-        }]);
-        
-        spooky.run();
-  
-      });
+      //   spooky.on('crawl.log', function (level, mess, meta) {
+      //     if (level === 'info') {
+      //       logger.info(mess, meta);
+      //     } else if (level === 'error') {
+      //       logger.error(mess, meta);
+      //     }
+      //   });
+      //
+      //   spooky.on('remote.message', function(msg) {
+      //     logger.debug('[crawler - spooky] Debug / ', {message:msg});
+      //   });
+      //
+      //   spooky.on('forward', function(args) {
+      //     var job = agenda.create('Crawler Crawl', {
+      //       crawler_id: args.crawler_id,
+      //       crawlerName: args.crawlerName,
+      //       props: args.props,
+      //       basepath: args.basepath,
+      //       crawl_id: args.crawl_id,
+      //       userDisplayName: args.userDisplayName,
+      //       forwardSelPath: args.forwardSelPath,
+      //       forwardPagesMax: args.forwardPagesMax,
+      //       currentPageNum: args.currentPageNum,
+      //       url: args.url
+      //     });
+      //     logger.debug('[crawler - spooky] Forwarding next page...');
+      //     job.save();
+      //     done();
+      //   });
+      //
+      //   spooky.on('save', function (crawlId, rec, crawlUrl, statusCode) {
+      //     Crawl.findById(crawlId).populate('user', 'displayName').populate('crawler').exec(function (err, crawl) {
+      //       if (err) {
+      //         logger.error('[crawler - spooky] Cannot be found.', {
+      //           crawlId: crawlId,
+      //           crawlerName: crawl.crawler.name,
+      //           crawlerId: crawl.crawler._id.toString(),
+      //           userDisplayName: crawl.user.displayName,
+      //           error:err
+      //         });
+      //       } else if (!crawl || rec === null) {
+      //         logger.error('[crawler - spooky] No crawler with that identifier has been found.', {
+      //           crawlId: crawlId,
+      //           crawlerId: crawl.crawler._id.toString(),
+      //           crawlerName: crawl.crawler.name,
+      //           userDisplayName: crawl.user.displayName
+      //         });
+      //       }
+      //
+      //       // Save crawl log.
+      //       if (rec.length === 0) {
+      //         logger.error('Data not found.', {
+      //           type: 'crawlLog',
+      //           crawlId: crawlId,
+      //           crawlerId: crawl.crawler._id.toString(),
+      //           crawlerName: crawl.crawler.name,
+      //           userDisplayName: crawl.user.displayName,
+      //           url: crawlUrl,
+      //           status: statusCode,
+      //           row: rec.length
+      //         });
+      //       } else {
+      //         logger.info('Success.', {
+      //           type: 'crawlLog',
+      //           crawlId: crawlId,
+      //           crawlerId: crawl.crawler._id.toString(),
+      //           crawlerName: crawl.crawler.name,
+      //           userDisplayName: crawl.user.displayName,
+      //           url: crawlUrl,
+      //           status: statusCode,
+      //           row: rec.length
+      //         });
+      //       }
+      //
+      //       // Retrieving last crawled index number and inserting one..
+      //       var lastindex = 0;
+      //       if (crawl.record.length >= 1) {
+      //         //crawl.record.sort(function(a, b) {
+      //         //  return (a['wac@@index'] < b['wac@@index']) ? -1 : 1;
+      //         //});
+      //         for (var r=0; r<crawl.record.length; r++) {
+      //           for (var c=0; c<crawl.record[r].length; c++) {
+      //             if (crawl.record[r][c].name === 'wac@@index' && crawl.record[r][c].content > lastindex) {
+      //               lastindex = crawl.record[r][c].content;
+      //             }
+      //           }
+      //         }
+      //       }
+      //
+      //       // Adding some special columns.
+      //       for (var i=0; i<rec.length; i++) {
+      //         // Generate and add md5 hash.
+      //         var hash = "";
+      //         for (var h=0; h<rec[i].length; h++) {
+      //           hash = hash+rec[i][h].content;
+      //         }
+      //         rec[i].push({name: 'wac@@hash', content: farmhash.fingerprint64(hash)});
+      //
+      //         lastindex++;
+      //         rec[i].push({name: 'wac@@index', content: lastindex});
+      //
+      //         // Merge the new record here.
+      //         crawl.record.push(rec[i]);
+      //       }
+      //
+      //       crawl.updated = Date.now();
+      //       crawl.save(function (err) {
+      //         if (err) {
+      //           logger.error('[crawler - spooky] Cannot be saved.', {
+      //             crawlId: crawlId,
+      //             crawlerId: crawl.crawler._id.toString(),
+      //             crawlerName: crawl.crawler.name,
+      //             userDisplayName: crawl.user.displayName,
+      //             error:err
+      //           });
+      //         }
+      //         logger.info('[crawler - spooky] Crawl data saved.', {
+      //             crawlId: crawlId,
+      //             crawlerId: crawl.crawler._id.toString(),
+      //             crawlerName: crawl.crawler.name,
+      //             userDisplayName: crawl.user.displayName
+      //         });
+      //       });
+      //     });
+      //   });
+      //
+      //   spooky.on('update', function (id, status) {
+      //     Crawler.findById(id).populate('user', 'displayName').exec(function (err, crawler) {
+      //       if (err) {
+      //         spooky.emit('error', err);
+      //       } else if (!crawler) {
+      //         spooky.emit('error', err);
+      //       }
+      //
+      //       if (crawler.status === "progress" && crawler.progress.process >= crawler.progress.total) {
+      //         crawler.status = "finished";
+      //       }
+      //       else {
+      //         crawler.status = status;
+      //       }
+      //
+      //       crawler.save(function (err) {
+      //         if (err) {
+      //           spooky.emit('error', err);
+      //         }
+      //         logger.info('[crawler - spooky] Crawler status updated: status = '+status, {crawlerId: id, crawlerName:crawler.name, userDisplayName:crawler.user.displayName});
+      //       });
+      //     });
+      //   });
+      //
+      //   spooky.on('process', function () {
+      //     pcrawler.progress.process = pcrawler.progress.process+1;
+      //     pcrawler.save(function (err) {
+      //       if (err) {
+      //         done(err);
+      //         logger.error('[crawler] Cannot be saved', err);
+      //       }
+      //     });
+      //     this.emit('console', 'Done');
+      //     done();
+      //   });
+      //
+      //   // Sort by each property's sort no.
+      //   job.attrs.data.props.sort(function(a, b) {
+      //     return (a.sort < b.sort) ? -1 : 1;
+      //   });
+      //
+      //
+      //   // Start crawl sequence below.
+      //   spooky.start(job.attrs.data.url);
+      //   //spooky.start();
+      //
+      //   var props,basepath,crawl_id,crawler_id, crawl_url;
+      //   spooky.then([{
+      //     props: job.attrs.data.props,
+      //     basepath: job.attrs.data.basepath,
+      //     crawl_id: job.attrs.data.crawl_id,
+      //     crawl_url: job.attrs.data.url
+      //   }, function afterStart() {
+      //     var rrows = [];
+      //     rrows = this.evaluate(function evaluateStuffAfterStart(props, basepath) {
+      //       var elements;
+      //       var rows = [];
+      //
+      //       if (basepath !== "") {
+      //         elements =  document.querySelectorAll(basepath);
+      //       } else {
+      //         elements = document.querySelectorAll('html');
+      //       }
+      //
+      //       for (var i=0; i<elements.length; i++) {
+      //         var row = [];
+      //         for (var j=0; j<props.length; j++) {
+      //           var cols = [];
+      //           for (var key in props[j].matches) {
+      //             var col;
+      //             if (props[j].matches[key] === true) {
+      //               var elem = elements[i].querySelector(props[j].path);
+      //               if (elem === null) {continue;}
+      //               if (key === 'src' || key === 'href' || key === 'alt' || key === 'content') {
+      //                 col = elem.getAttribute(key);
+      //                 if (col !== null) {
+      //                   cols.push({
+      //                     att: key,
+      //                     con: col,
+      //                     path:props[j].path
+      //                   });
+      //                 }
+      //               }
+      //               if (key === 'text') {
+      //                 col = elem.innerText;
+      //                 if (col !== null) {
+      //                   cols.push({
+      //                     att: key,
+      //                     con: col,
+      //                     path:props[j].path
+      //                   });
+      //                 }
+      //               }
+      //             }
+      //           }
+      //
+      //           // If retrieved content has single attribute.
+      //           if (cols.length === 1) {
+      //             row.push({name: props[j].name, content: cols[0].con});
+      //           }
+      //           // If retrieved content has multi attributes.
+      //           else if (cols.length >= 2) {
+      //             for (var n=0; n<cols.length; n++) {
+      //               row.push({name: props[j].name+"@"+cols[n].att, content: cols[n].con});
+      //             }
+      //           }
+      //         }
+      //         console.log('Row: '+JSON.stringify(row));
+      //
+      //         if (row.length >= 1) {
+      //           // Add crawling url.
+      //           row.push({name: 'wac@@url', content: location.href});
+      //           rows.push(row);
+      //         }
+      //       }
+      //
+      //       return rows;
+      //     }, props, basepath);
+      //
+      //     //this.emit('debug', 'Result - rows: ', rrows);
+      //     this.emit('save', crawl_id, rrows, crawl_url, this.status().currentHTTPStatus);
+      //   }]);
+      //
+      //   var forwardSelPath, forwardPagesMax, currentPageNum, userDisplayName, crawlerName;
+      //   spooky.then([{
+      //     props: job.attrs.data.props,
+      //     basepath: job.attrs.data.basepath,
+      //     crawler_id: job.attrs.data.crawler_id,
+      //     crawlerName: job.attrs.data.crawlerName,
+      //     crawl_id: job.attrs.data.crawl_id,
+      //     crawl_url: job.attrs.data.url,
+      //     userDisplayName:  job.attrs.data.userDisplayName,
+      //     forwardSelPath: job.attrs.data.forwardSelPath,
+      //     forwardPagesMax: job.attrs.data.forwardPagesMax,
+      //     currentPageNum: job.attrs.data.currentPageNum
+      //   }, function forwarding() {
+      //     var url = "";
+      //     var elem = "";
+      //     if (forwardSelPath !== "" && currentPageNum < forwardPagesMax) {
+      //       url = this.evaluate(function evaluateStuffForwarding(forwardSelPath) {
+      //         if (forwardSelPath !== "") {
+      //           elem =  document.querySelector(forwardSelPath);
+      //         }
+      //         if (elem === null) {return false;}
+      //         else {return elem.getAttribute('href');}
+      //       }, forwardSelPath);
+      //       if (url) {
+      //         currentPageNum = currentPageNum + 1;
+      //         this.emit('forward', {
+      //           props: props,
+      //           basepath: basepath,
+      //           crawler_id: crawler_id,
+      //           crawlerName: crawlerName,
+      //           crawl_id: crawl_id,
+      //           userDisplayName: userDisplayName,
+      //           forwardSelPath: forwardSelPath,
+      //           forwardPagesMax: forwardPagesMax,
+      //           currentPageNum: currentPageNum,
+      //           url: url
+      //         });
+      //       } else {
+      //         this.emit('debug','finishing crawl...', {current: currentPageNum, max:forwardPagesMax});
+      //         this.emit('process');
+      //       }
+      //     } else {
+      //       this.emit('debug','finishing crawl...', {current: currentPageNum, max:forwardPagesMax});
+      //       this.emit('process');
+      //     }
+      //   }]);
+      //
+      //   spooky.then([{
+      //     crawler_id: job.attrs.data.crawler_id
+      //   }, function afterSave() {
+      //     this.emit('update', crawler_id, 'progress');
+      //   }]);
+      //
+      //   spooky.run();
+      //
+      // });
       
     });
   });

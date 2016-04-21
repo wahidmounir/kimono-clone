@@ -12,7 +12,9 @@ winston.add(winston.transports.MongoDB, {
   db: config.db.uri,
   options: config.db.options,
   collection: 'logs',
-  capped: true
+  capped: true,
+  handleExceptions: true,
+  humanReadableUnhandledException: true
 });
 
 /*winston.add(
