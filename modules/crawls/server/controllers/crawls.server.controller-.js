@@ -180,7 +180,7 @@ exports.crawl = function (job, done) {
         var skip = ig.split('\n');
         skip.forEach(function(needle) {
           if (new RegExp(needle, 'i').test(requestData.url)) {
-            //console.log('Request aborted: '+requestData.url);
+            console.log('Request aborted: '+requestData.url);
             request.abort();
           }
         });
