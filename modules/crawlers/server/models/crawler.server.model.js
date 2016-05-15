@@ -223,6 +223,18 @@ var CrawlerSchema = new Schema({
     },
     errors: []
   },
+  // ignore: {
+  //   resources: {
+  //     type: String,
+  //     default: '\.(css|gif|jpg|png|svg|swf)\nad-stir\.com\nadap\.tv\nadnxs\.com\nadobedtm\.com\nadtech\.de\nadtechjp\.com\nadtechus\.com\nadvg\.jp\nakamai\.net\namazonaws\.com\nbidswitch\.net\nbrightcove\.co\.jp\nbtstatic\.com\ncasalemedia\.com\ncloudflare\.com\ncloudfront\.com\ncontextweb\.com\ncriteo\.com\ncriteo\.net\ndemdex\.net\ndeqwas\.net\ndoubleclick\.net\nfacebook\.com\nfacebook\.net\nfbcdn\.net\nfout\.jp\ngetpocket\.com\ngoogle-analytics\.com\ngoogle\.co\.jp\ngoogle\.com\ngoogleadservices\.com\ngoogleapis\.com\ngooglesyndication\.com\ngoogletagmanager\.com\ngravatar\.com\ngstatic\.com\nhatena\.ne\.jp\ni-mobile\.net\nimpact-ad\.net\ninstagramfollowbutton\.com\nkaizenplatform\.net\nkeyword-match\.com\nlijit\.com\nmicroad\.jp\nnakanohito\.jp\nomtrdc\.net\nopenx\.net\nptengine\.jp\npubmatic\.com\nrtoaster\.jp\nrubiconproject\.net\nsharethrough\.com\nt\.co\ntaboola\.com\ntapad\.com\nthatsping\.com\nthebrighttag\.com\ntribalfusion\.com\nturn\.com\ntwitter\.com\nverisign\.com\n[a-z]{1,2}[0-9]{1,2}\.yahoo\.co\.jp\nyahooapis\.jp\nyimg\.jp\nyjtag\.jp',
+  //     trim: true
+  //   },
+  //   regexp: {
+  //     type: Boolean,
+  //     default: true,
+  //     trim: true
+  //   }
+  // }
   user: {
     type: Schema.ObjectId,
     ref: 'User'
