@@ -12,6 +12,14 @@ function ($resource) {
           method: 'GET'
         }
       }),
+    clear: 
+      $resource('api/crawlers/:crawlerId/clear', {
+        crawlerId: '@_id'
+      }, {
+        now: {
+          method: 'GET'
+        }
+      }),
     reserve:
       $resource('api/crawlers/:crawlerId/reserve', {
         crawlerId: '@_id'
@@ -35,10 +43,16 @@ function ($resource) {
             for(var p in data) {
               str.push(encodeURIComponent(p) + "=" + encodeURIComponent(data[p]));
             }
-            console.log(str);
             return str.join("&");
           }
-        }
+        },
+        // search: {
+        //   method: 'GET',
+        //   params: {
+        //     srchwd: '@srchwd',
+        //   },
+        //   isArray: true
+        // }
       }),
       list: $resource('api/crawlers/user')
   };
@@ -53,7 +67,7 @@ angular.module('crawlers').factory('CrawlerStats', function ($http, $timeout) {
     var data = { response: { }, calls: 0 };
 
     var poller = function (id) {
-      return $http.get(url+id, params).then(function (responseData) {
+      return $http.get(url+id+'/status', params).then(function (responseData) {
         data.calls++;
         data.response = responseData.data;
         return data;

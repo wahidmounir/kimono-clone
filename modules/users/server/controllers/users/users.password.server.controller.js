@@ -9,10 +9,12 @@ var path = require('path'),
   mongoose = require('mongoose'),
   User = mongoose.model('User'),
   nodemailer = require('nodemailer'),
+  // transport = require('nodemailer-smtp-transport'),
   async = require('async'),
   crypto = require('crypto');
 
-var smtpTransport = nodemailer.createTransport(config.mailer.options);
+// var smtpTransport = nodemailer.createTransport(config.mailer.options);
+var smtpTransport = nodemailer.createTransport('SMTP', config.mailer.options);
 
 /**
  * Forgot for reset password (forgot POST)
@@ -78,6 +80,7 @@ exports.forgot = function (req, res, next) {
             message: 'An email has been sent to the provided email with further instructions.'
           });
         } else {
+          console.log(err);
           return res.status(400).send({
             message: 'Failure sending email'
           });

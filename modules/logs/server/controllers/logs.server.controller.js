@@ -49,7 +49,7 @@ exports.list = function (req, res) {
 };
 
 /**
-* Paginate List articles
+* Paginate List of Logs
 **/
 exports.logList = function(req, res){
   var resdata = {count:0, table:[], logs:[]};
@@ -66,57 +66,28 @@ exports.logList = function(req, res){
     cond = {level:req.params.level};
   }
   
-  Log.aggregate([{
-    $match: {level: "error"}
-  },{
-    $group : { 
-      _id : {
-        year: { $year : "$timestamp" },
-        month: { $month : "$timestamp" },
-        day: { $dayOfMonth : "$timestamp" },
-        level: "$level"
-      },
-      count : { $sum : 1 }
-  }}, {
-    $project: {
-      date: {
-        year: "$_id.year",
-        month: "$_id.month",
-        day: "$_id.day",
-        level: "$_id.level"
-      },
-      count: 1,
-      _id: 0
-  }}, {
-    $sort: {'date.year': -1, 'date.month': -1, 'date.day': -1}
-  }, {
-    $limit: 5
-  }], function (err, table) {
-    resdata.table = table;
-    console.log(table);
-    
-    Log.find(cond).count(function(err, count) {
-      if (err) {
-        return res.status(400).send({
-          message: errorHandler.getErrorMessage(err)
-        });
-      } else {
-        resdata.count = count;
-    
-        Log.find(cond).sort('-timestamp').skip((page-1)*per_page).limit(per_page).populate('user', 'displayName').exec(function(err, logs) {
-          if (err) {
-            return res.status(400).send({
-              message: errorHandler.getErrorMessage(err)
-            });
-          } else {
-            resdata.logs = logs;
-            res.json(resdata);
-          }
-        });
-      }
-    });
+  Log.find(cond).limit(100000).count(function(err, count) {
+    if (err) {
+      return res.status(400).send({
+        message: errorHandler.getErrorMessage(err)
+      });
+    } else {
+      resdata.count = count;
+  
+      Log.find(cond).limit(100000).sort('-timestamp').skip((page-1)*per_page).limit(per_page).populate('user', 'displayName').exec(function(err, logs) {
+        if (err) {
+          return res.status(400).send({
+            message: errorHandler.getErrorMessage(err)
+          });
+        } else {
+          resdata.logs = logs;
+          res.json(resdata);
+        }
+      });
+    }
   });
 };
+
 /**
  * Log middleware
  */
@@ -143,7 +114,7 @@ exports.logList = function(req, res){
 
 exports.readCrawlLog = function (req, res) {
   Log.find({
-    'meta.type': 'crawlLog',
+    'meta.type': 'crawlResult',
     'meta.crawlId': req.params.crawlId
   }, {}, {sort:{timestamp: 1}}).exec(function (err, logs) {
     if (err) {

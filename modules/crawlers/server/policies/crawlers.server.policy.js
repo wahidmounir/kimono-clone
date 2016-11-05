@@ -18,6 +18,12 @@ exports.invokeRolesPolicies = function () {
       resources: '/api/crawlers',
       permissions: '*'
     }, {
+      resources: '/api/crawlers/list/:page/:per',
+      permissions: '*'
+    }, {
+      resources: '/api/crawlers/list/:page/:per/:srchwd',
+      permissions: '*'
+    }, {
       resources: '/api/crawlers/user',
       permissions: '*'
     }, {
@@ -26,6 +32,12 @@ exports.invokeRolesPolicies = function () {
     }, {
       resources: '/api/crawlers/:crawlerId/now',
       permissions: '*'
+    }, {
+      resources: '/api/crawlers/:crawlerId/status',
+      permissions: '*'
+    }, {
+      resources: '/api/crawlers/:crawlerId/data',
+      permissions: ['get']
     }, {
       resources: '/api/crawlers/:crawlerId',
       permissions: '*'
@@ -42,18 +54,18 @@ exports.invokeRolesPolicies = function () {
       resources: '/api/crawlers/:crawlerId',
       permissions: ['get']
     }]
-  }, {
-    roles: ['guest'],
-    allows: [{
-    //   resources: '/api/crawlers',
-    //   permissions: ['get']
-    // }, {
-    //   resources: '/api/crawlers/:crawlerId',
-    //   permissions: ['get']
-    // }, {
-      resources: '/api/crawlers/:crawlerId/data',
-      permissions: ['get']
-    }]
+  // }, {
+    // roles: ['guest'],
+    // allows: [{
+    // //   resources: '/api/crawlers',
+    // //   permissions: ['get']
+    // // }, {
+    // //   resources: '/api/crawlers/:crawlerId',
+    // //   permissions: ['get']
+    // // }, {
+    //   // resources: '/api/crawlers/:crawlerId/data',
+    //   // permissions: ['get']
+    // }]
   }]);
 };
 

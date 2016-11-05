@@ -107,9 +107,10 @@ angular.module('crawls').controller('CrawlsController', ['$scope', '$controller'
 
     // Find existing Crawl
     $scope.findOne = function () {
-      $scope.crawl = Crawls.crawl.get({
+      var crawl = Crawls.crawl.get({
         crawlId: $stateParams.crawlId
       });
+      $scope.crawl = crawl;
     };
     
     $scope.findLogs = function () {
@@ -122,6 +123,13 @@ angular.module('crawls').controller('CrawlsController', ['$scope', '$controller'
     $scope.currentPageLog = 1;
     $scope.itemsPerPage = 10;
 
+    $scope.getContent = function (row, col) {
+      for (var r=0; r<row.length; r++) {
+        if (row[r].name === col) {
+          return row[r].content;
+        }
+      }
+    };
   }
 ]);
 

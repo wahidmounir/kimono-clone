@@ -1,8 +1,8 @@
 'use strict';
 
 // Crawlers controller
-angular.module('crawlers').controller('CrawlersController', ['$scope', '$window', '$http', '$stateParams', '$location', '$timeout', '$modal', 'Authentication', 'Crawlers', 'CrawlerStats', 'vcRecaptchaService',
-  function ($scope, $window, $http, $stateParams, $location, $timeout, $modal, Authentication, Crawlers, CrawlerStats, vcRecaptchaService) {
+angular.module('crawlers').controller('CrawlersController', ['$scope', '$window', '$http', '$stateParams', '$location', '$timeout', '$modal', '$anchorScroll', 'Authentication', 'Crawlers', 'CrawlerStats', 'vcRecaptchaService',
+  function ($scope, $window, $http, $stateParams, $location, $timeout, $modal, $anchorScroll, Authentication, Crawlers, CrawlerStats, vcRecaptchaService) {
     $scope.authentication = Authentication;
     
     $scope.strategy = {
@@ -15,12 +15,12 @@ angular.module('crawlers').controller('CrawlersController', ['$scope', '$window'
       ],
     };
     
-    $scope.archive = {
-      options: [
-        {id: 'no',  name: 'Last crawl only'},
-        {id: 'yes', name: 'Archive all crawls'},
-      ],
-    };
+    // $scope.archive = {
+    //   options: [
+    //     {id: 'no',  name: 'Last crawl only'},
+    //     {id: 'yes', name: 'Archive all crawls'},
+    //   ],
+    // };
     
     $scope.frequency = {
       selected: null,
@@ -32,6 +32,31 @@ angular.module('crawlers').controller('CrawlersController', ['$scope', '$window'
         {id: '6-hours',    name: 'Every 6 hours'},
         {id: '12-hours',   name: 'Every 12 hours'},
         {id: '24-hours',   name: 'Every day'},
+        {id: '1-week',     name: 'Every week'},
+        {id: 'specific',   name: 'Specific schedule'},
+      ],
+    };
+    
+    $scope.buffer = {
+      selected: null,
+      options: [
+        {id: 'none', name: 'None'},
+        {id: '1',    name: '1 minute'},
+        {id: '2',    name: '2 minutes'},
+        {id: '3',    name: '3 minutes'},
+        {id: '4',    name: '4 minutes'},
+        {id: '5',    name: '5 minutes'},
+        {id: '10',   name: '10 minutes'},
+        {id: '20',   name: '20 minutes'},
+        {id: '30',   name: '30 minutes'},
+        {id: '60',   name: '1 hour'},
+        {id: '120',  name: '2 hours'},
+        {id: '180',  name: '3 hours'},
+        {id: '240',  name: '4 hours'},
+        {id: '300',  name: '5 hours'},
+        {id: '360',  name: '6 hours'},
+        {id: '480',  name: '8 hours'},
+        {id: '720',  name: '12 hours'},
       ],
     };
     
@@ -48,12 +73,30 @@ angular.module('crawlers').controller('CrawlersController', ['$scope', '$window'
         {id: 2,  name: '2 pages max (to test)'},
         {id: 5,  name: '5 pages max'},
         {id: 10, name: '10 pages max'},
-        {id: 20, name: '20 pages max'}
+        {id: 20, name: '20 pages max'},
+        {id: 30, name: '30 pages max'},
+        {id: 50, name: '50 pages max'},
+        {id: 100, name: '100 pages max'}
       ],
     };
     
+    $scope.devices = {
+      options: [
+        {id: 'macSafari',  name: 'Mac / Safari (User-Agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/601.5.17 (KHTML, like Gecko) Version/9.1 Safari/601.5.17", Viewport Size: 1440 x 900 px.)'},
+        {id: 'iphone6Safari',  name: 'iPhone 6 / Safari (User-Agent: "Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1", Viewport Size: 375 x 667 px.)'}
+      ],
+    };
+    
+    //Pagination
+    $scope.currentPage = $stateParams.page || 1;
+    $scope.itemsPerPage = $stateParams.per || 20;
+
+    // Keyword search
+    $scope.srchwd = "";
+    
     // Create new Crawler
     $scope.create = function (isValid) {
+      var vm = this;
       $scope.error = null;
 
       if (!isValid) {
@@ -62,51 +105,46 @@ angular.module('crawlers').controller('CrawlersController', ['$scope', '$window'
       }
       
       // Spam block
-      if (this.website !== undefined) {
+      if (vm.website !== undefined) {
         $scope.$broadcast('show-errors-check-validity', 'crawlerForm');
         $scope.error = 'Cannot create.';
         return false;
       }
       
-     /**
-      * SERVER SIDE VALIDATION
-      *
-      * You need to implement your server side validation here.
-      * Send the reCaptcha response to the server and use some of the server side APIs to validate it
-      * See https://developers.google.com/recaptcha/docs/verify
-      */
-      var valid;
-      console.log('sending the captcha response to the server', $scope.response);
-      if (valid) {
+      $http.post('api/recaptcha/verify', {
+        'grresponse': $scope.response
+      }).then(function (response) {
+        if(response.data.error === 0){
           console.log('Success');
-      } else {
-          console.log('Failed validation');
-          // In case of a failed validation you need to reload the captcha
-          // because each response can be checked just once
-          vcRecaptchaService.reload($scope.widgetId);
-      }
-      
-      // Create new Crawler object
-      var crawler = new Crawlers.crud({
-        name: this.name,
-        url: this.url
-      });
-      
-      // Redirect after save
-      crawler.$save(function (response) {
-        $location.path('crawlers/' + response._id);
 
-        // Clear form fields
-        $scope.name = '';
-        $scope.url = '';
-        $scope.status = '';
-        $scope.strategy = '';
-        $scope.frequency = '';
-        $scope.basepath = '';
-        $scope.forwarding = '';
-        $scope.script = '';
-      }, function (errorResponse) {
-        $scope.error = errorResponse.data.message;
+          // Create new Crawler object
+          var crawler = new Crawlers.crud({
+            name: vm.name,
+            url: vm.url
+          });
+          
+          // Redirect after save
+          crawler.$save(function (response) {
+            $location.path('crawlers/' + response._id);
+
+            // Clear form fields
+            $scope.name = '';
+            $scope.url = '';
+            $scope.status = '';
+            $scope.strategy = '';
+            $scope.frequency = '';
+            $scope.basepath = '';
+            $scope.forwarding = '';
+            $scope.script = '';
+            $scope.ignore = '';
+            $scope.emulate = '';
+          }, function (errorResponse) {
+            $scope.error = errorResponse.data.message;
+          });
+        } else {
+          $scope.error = 'Failed validation';
+          vcRecaptchaService.reload($scope.widgetId);
+        }
       });
     };
 
@@ -156,7 +194,11 @@ angular.module('crawlers').controller('CrawlersController', ['$scope', '$window'
       var crawler = $scope.crawler;
       
       crawler.$update(function () {
-        $location.path('crawlers/' + crawler._id);
+        $scope.success = 'Crawler update successfully';
+        $timeout(function () {
+          $scope.success = null;
+        }, 1000);
+        // $location.path('crawlers/' + crawler._id);
       }, function (errorResponse) {
         $scope.error = errorResponse.data.message;
       });
@@ -167,6 +209,10 @@ angular.module('crawlers').controller('CrawlersController', ['$scope', '$window'
       crawler.filter.source = $scope.editor.getValue();
       
       crawler.$update(function () {
+        $scope.success = 'Crawler update successfully';
+        $timeout(function () {
+          $scope.success = null;
+        }, 1000);
         $scope.crawler = crawler;
         $scope.getCrawledRows();
       }, function (errorResponse) {
@@ -175,12 +221,17 @@ angular.module('crawlers').controller('CrawlersController', ['$scope', '$window'
     };
 
     // Find a list of Crawlers
-    $scope.find = function () {
-      $scope.crawlers = Crawlers.crud.query();
-    };
-    
+    // $scope.find = function () {
+    //   $scope.crawlers = Crawlers.crud.query({
+    //     srchwd: $scope.srchwd
+    //   });
+    // };
+
     $scope.findByUser = function () {
-      $scope.userCrawlers = Crawlers.list.query();
+      // $scope.userCrawlers = Crawlers.list.query();
+      $scope.userCrawlers = Crawlers.crud.query({
+        type: 'indexer'
+      });
     };
     
 
@@ -282,25 +333,19 @@ angular.module('crawlers').controller('CrawlersController', ['$scope', '$window'
       Crawlers.crawl.now({
         crawlerId: $stateParams.crawlerId
       });
-      location.reload();
+      // location.reload();
+    };
+
+    $scope.clear = function () {
+      Crawlers.clear.now({
+        crawlerId: $stateParams.crawlerId
+      });
+      // location.reload();
     };
     
     
-    // Dinamically adding array.
-    $scope.items = [];
-
-    $scope.itemsToAdd = [{
-      name: '',
-      path: '',
-      matches: {
-        href: '',
-        src: '',
-        alt: '',
-        content: '',
-        text: ''
-      },
-      sort: ''
-    }];
+    // Adding array dinamically.
+    $scope.itemsToAdd = [];
     
     $scope.add = function(itemToAdd) {
       var index = $scope.itemsToAdd.indexOf(itemToAdd);
@@ -308,16 +353,31 @@ angular.module('crawlers').controller('CrawlersController', ['$scope', '$window'
       $scope.crawler.properties.push(angular.copy(itemToAdd));
     };
     
+    $scope.deleteItem = function(index) {
+      $scope.itemsToAdd.splice(index, 1);
+    };
+    
     $scope.addNew = function () {
       $scope.itemsToAdd.push({
         name: '',
         path: '',
         matches: {
-          href: '',
-          src: '',
-          alt: '',
-          content: '',
-          text: ''
+          href:     false,
+          src:      false,
+          alt:      false,
+          content:  false,
+          text:     true,
+          html:     false
+        },
+        regexp: '^()(.+)()$',
+        indexing: {
+          multi:  false,
+          no:     false
+        },
+        deep: {
+          enable: false,
+          depth: 0,
+          force: false
         },
         sort: ''
       });
@@ -360,24 +420,59 @@ angular.module('crawlers').controller('CrawlersController', ['$scope', '$window'
     });
     */
     
+    // recaptcha validation.
     $scope.response = null;
     $scope.widgetId = null;
     $scope.model = {
-        key: '6Ld6mB0TAAAAAGI18s6tR_MeXQDzO3V1UGWWLF1C'
+      key: '6Ld6mB0TAAAAAGI18s6tR_MeXQDzO3V1UGWWLF1C'
     };
     $scope.setResponse = function (response) {
-        console.info('Response available');
-        $scope.response = response;
+      console.info('Response available');
+      $scope.response = response;
     };
     $scope.setWidgetId = function (widgetId) {
-        console.info('Created widget ID: %s', widgetId);
-        $scope.widgetId = widgetId;
+      console.info('Created widget ID: %s', widgetId);
+      $scope.widgetId = widgetId;
     };
     $scope.cbExpiration = function() {
-        console.info('Captcha expired. Resetting response object');
-        vcRecaptchaService.reload($scope.widgetId);
-        $scope.response = null;
-     };
+      console.info('Captcha expired. Resetting response object');
+      vcRecaptchaService.reload($scope.widgetId);
+      $scope.response = null;
+    };
+
+    // Pagenation.
+    $scope.setPage = function (pageNo) {
+      $scope.currentPage = pageNo;
+    };
+
+    $scope.pageChanged = function () {
+      $scope.getCrawlers();
+      $location.hash('top');
+    };
+    
+    $scope.getCrawlers = function (first) {
+      if (first) {
+        $scope.currentPage = 1;
+      }
+      var url = '/api/crawlers/list/' + $scope.currentPage+'/'+$scope.itemsPerPage;
+      if ($scope.srchwd) {
+        url += '/' + $scope.srchwd;
+      }
+      $http.get(url).success(function (response) {
+        $scope.totalItems = response.count;
+        $scope.crawlers = response.crawlers;
+        $location.hash('');
+      }).error(function (response) {
+        $scope.error = response.message;
+      });
+    };
+
+    $scope.clearText = function () {
+      $scope.srchwd = '';
+      $scope.currentPage = 1;
+      $scope.getCrawlers(true);
+    };
+    
   }
 ]);
 

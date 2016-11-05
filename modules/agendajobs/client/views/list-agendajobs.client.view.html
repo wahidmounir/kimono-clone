@@ -1,0 +1,48 @@
+<section>
+  <div class="page-header">
+    <h1>Agendajobs</h1>
+  </div>
+  <div>
+    <a class="btn btn-link" ng-click="vm.comm('agenda-stop')">
+      Agenda Stop, 
+    </a>
+    <a class="btn btn-link" ng-click="vm.comm('agenda-start')">
+      Agenda Start
+    </a>
+  </div>
+  <div class="list-group">
+    <div data-ng-repeat="agendajob in vm.agendajobs" class="list-group-item">
+      <p class="list-group-item-heading" >
+        <strong>{{agendajob.name}} : {{agendajob.data.crawlerName}}</strong> - 
+        <small ng-if="agendajob.nextRunAt">
+          <i class="glyphicon glyphicon-time"></i>
+          <span data-ng-bind="agendajob.nextRunAt | date:'M/d H:m:s'"></span>
+        </small>
+        <small ng-if="agendajob.repeatInterval">
+           - <i class="glyphicon glyphicon-repeat"></i> 
+          <span data-ng-bind="agendajob.repeatInterval"></span>
+        </small>
+        <small class="text-muted" ng-if="agendajob.lastRunAt">
+           - Last Run: 
+          <span data-ng-bind="agendajob.lastRunAt | date:'M/d H:m:s'"></span>,
+        </small>
+        <small class="text-muted" ng-if="agendajob.lastFinishedAt">
+          Last Finished: 
+          <span data-ng-bind="agendajob.lastFinishedAt | date:'M/d H:m:s'"></span>,
+        </small>
+        <small class="text-muted" ng-if="agendajob.lockedAt">
+          Locked:
+          <span data-ng-bind="agendajob.lockedAt | date:'M/d H:m:s'"></span>
+          <a class="btn-link" ng-click="vm.touch(agendajob)">
+            [<i class="glyphicon glyphicon-ok"></i> Touch]
+          </a>
+        </small>
+        <small class="text-muted">
+          <a class="btn-link" data-ng-click="vm.remove(agendajob)">
+            [<i class="glyphicon glyphicon-trash"></i> Remove]
+          </a>
+        </small>
+      </p>
+    </div>
+  </div>
+</section>

@@ -61,6 +61,8 @@
   <pagination 
     total-items="crawl.record.length"
     items-per-page="itemsPerPage"
+    boundary-links="true"
+    max-size="20"
     ng-model="currentPage"
     class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"
     ></pagination>
@@ -68,12 +70,12 @@
   <table class="table table-striped table-hover" fixed-header>
     <thead>
       <tr>
-        <th ng-repeat="col in crawl.record[0]">{{col.name}}</th>
+        <th ng-repeat="col in crawl.columns">{{col}}</th>
       </tr>
     </thead>
     <tbody>
       <tr ng-repeat="row in crawl.record | offset:(currentPage-1)*itemsPerPage | limitTo:itemsPerPage">
-        <td ng-repeat="col in row">{{col.content}}</td>
+        <td ng-repeat="col in crawl.columns">{{getContent(row, col);}}</td>
       </tr>
     </tbody>
   </table>

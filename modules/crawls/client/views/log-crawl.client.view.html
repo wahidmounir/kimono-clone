@@ -61,7 +61,9 @@
   <pagination 
     total-items="logs.data.length"
     items-per-page="itemsPerPage"
+    boundary-links="true"
     ng-model="currentPageLog"
+    max-size="20"
     class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"
     ></pagination>
     

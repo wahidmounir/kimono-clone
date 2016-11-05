@@ -27,6 +27,12 @@ module.exports = function (app) {
   app.route('/api/crawlers/:crawlerId/start').all(crawlersPolicy.isAllowed)
     .get(crawlers.start);
 
+  app.route('/api/crawlers/:crawlerId/clear').all(crawlersPolicy.isAllowed)
+    .get(crawlers.clear);
+
+  app.route('/api/crawlers/:crawlerId/status').all(crawlersPolicy.isAllowed)
+    .get(crawlers.status);
+
   // クロール結果の出力
   app.route('/api/crawlers/:crawlerId/data.:extension').all(crawlersPolicy.isAllowed)
     .get(crawlers.data);
@@ -36,6 +42,11 @@ module.exports = function (app) {
     .get(crawlers.read)
     .put(crawlers.update)
     .delete(crawlers.delete);
+
+  app.route('/api/crawlers/list/:page/:per').all(crawlersPolicy.isAllowed)
+    .get(crawlers.crawlersList);
+  app.route('/api/crawlers/list/:page/:per/:srchwd').all(crawlersPolicy.isAllowed)
+    .get(crawlers.crawlersList);
 
   // Finish by binding the crawler middleware
   app.param('crawlerId', crawlers.crawlerByID);

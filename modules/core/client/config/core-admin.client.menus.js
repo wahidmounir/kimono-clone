@@ -8,5 +8,11 @@ angular.module('core.admin').run(['Menus',
       type: 'dropdown',
       roles: ['admin']
     });
+    
+    Menus.addSubMenuItem('topbar', 'admin', {
+      title: 'Setting',
+      state: 'admin.setting',
+      roles: ['admin']
+    });
   }
 ]);

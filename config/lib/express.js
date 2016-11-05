@@ -17,9 +17,7 @@ var config = require('../config'),
   helmet = require('helmet'),
   flash = require('connect-flash'),
   consolidate = require('consolidate'),
-  path = require('path'),
-  agenda = require('./agenda'),
-  csv = require('express-csv');
+  path = require('path');
 
 /**
  * Initialize local variables

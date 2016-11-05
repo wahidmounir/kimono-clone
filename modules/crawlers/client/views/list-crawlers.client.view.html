@@ -1,19 +1,49 @@
-<section ng-controller="CrawlersController" ng-init="find()">
+<section ng-controller="CrawlersController" ng-init="getCrawlers()">
   <div class="page-header">
     <h1>API List</h1>
   </div>
+
+  <div class="pull-right">
+    <pagination total-items="totalItems" ng-model="currentPage" items-per-page="itemsPerPage" max-size="20" boundary-links="true" ng-change="pageChanged()" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;" style="margin:0;"></pagination>
+  </div>
+
+  <div class="row">
+    <form name="crawlersForm" class="form-inline" ng-submit="getCrawlers(true)" novalidate>
+      <div class="form-group has-feedback">
+        <label>Filter: </label>
+        <input name="srchwd" type="text" ng-model="srchwd" id="" class="form-control">
+        <span ng-if="srchwd"
+              ng-click="clearText()"
+              class="glyphicon glyphicon-remove-circle form-control-feedback text-muted" 
+              style="cursor: pointer; pointer-events: all;"
+              uib-tooltip="clear"></span>
+      </div>
+      <div class="form-group">
+        <input type="submit" value="Search" class="btn btn-default">
+      </div>
+    </form>
+  </div>
+
+  <br>
   <div class="list-group">
     <a ng-repeat="crawler in crawlers" ui-sref="crawlers.view({crawlerId: crawler._id})" class="list-group-item">
       <small class="list-group-item-text">
-        Posted on
+        Created on
         <span ng-bind="crawler.created | date:'mediumDate'"></span>
         by
         <span ng-bind="crawler.user.displayName"></span>
+      </small>
+      <small class="pull-right">
+        <span ng-bind="crawler.description"></span>
       </small>
       <h4 class="list-group-item-heading" ng-bind="crawler.name"></h4>
     </a>
   </div>
   <div class="alert alert-warning text-center" ng-if="crawlers.$resolved && !crawlers.length">
     No crawlers yet, why don't you <a ui-sref="crawlers.create">create one</a>?
+  </div>
+  
+  <div class="pull-right">
+    <pagination total-items="totalItems" ng-model="currentPage" items-per-page="itemsPerPage" max-size="20" boundary-links="true" ng-change="pageChanged()" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;" style="margin:0;"></pagination>
   </div>
 </section>

@@ -4,7 +4,9 @@
  * Module dependencies.
  */
 var mongoose = require('mongoose'),
-  Schema = mongoose.Schema;
+  Schema = mongoose.Schema,
+  path = require('path'),
+  config = require(path.resolve('./config/config'));
 
 var PropertySchema = new Schema({
   name: {
@@ -44,6 +46,45 @@ var PropertySchema = new Schema({
       type: Boolean,
       default: false,
       trim: true
+    },
+    html: {
+      type: Boolean,
+      default: false,
+      trim: true
+    }
+  },
+  regexp: {
+    type: String,
+    default: '^()(.+)()$',
+    trim: true
+  },
+  indexing: {
+    multi: {
+      type: Boolean,
+      default: false,
+      trim: true
+    },
+    no: {
+      type: Boolean,
+      default: false,
+      trim: true
+    }
+  },
+  deep: {
+    enable: {
+      type: Boolean,
+      default: false,
+      trim: true
+    },
+    depth: {
+      type: Number,
+      default: 0,
+      trim: true,
+    },
+    force: {
+      type: Boolean,
+      default: false,
+      trim: true
     }
   },
   sort: {
@@ -55,15 +96,20 @@ var PropertySchema = new Schema({
 });
 
 
-var state = {
-  values: 'none reserved processing progress finished'.split(' '),
+var type = {
+  values: 'scraper indexer'.split(' '),
   message: 'enum validator failed for path `{PATH}` with value `{VALUE}`'
 };
 
-var archive = {
-  values: 'no yes'.split(' '),
+var state = {
+  values: 'new reserved processing progress complete partial'.split(' '),
   message: 'enum validator failed for path `{PATH}` with value `{VALUE}`'
 };
+
+// var archive = {
+//   values: 'no yes'.split(' '),
+//   message: 'enum validator failed for path `{PATH}` with value `{VALUE}`'
+// };
 
 var strategy = {
   values: 'source manual parameter api'.split(' '),
@@ -71,7 +117,12 @@ var strategy = {
 };
 
 var frequency = {
-  values: 'manual 30-seconds 1-hour 3-hours 6-hours 12-hours 24-hours'.split(' '),
+  values: 'manual 30-seconds 1-hour 3-hours 6-hours 12-hours 24-hours 1-week specific'.split(' '),
+  message: 'enum validator failed for path `{PATH}` with value `{VALUE}`'
+};
+
+var buffer = {
+  values: 'none 1 2 3 4 5 10 20 30 60 120 180 240 300 360 480 720'.split(' '),
   message: 'enum validator failed for path `{PATH}` with value `{VALUE}`'
 };
 
@@ -86,7 +137,12 @@ var paramtype = {
 };
 
 var forwardPages = {
-  values: '10 20'.split(' '),
+  values: '2 5 10 20 30 50 100'.split(' '),
+  message: 'enum validator failed for path `{PATH}` with value `{VALUE}`'
+};
+
+var devices = {
+  values: Object.keys(config.emulateDevices),
   message: 'enum validator failed for path `{PATH}` with value `{VALUE}`'
 };
 
@@ -105,35 +161,38 @@ var CrawlerSchema = new Schema({
     trim: true,
     required: 'API Name cannot be blank'
   },
+  description: {
+    type: String,
+    default: '',
+    trim: true
+  },
   url: {
     type: String,
     default: '',
     trim: true,
     required: 'Source URL cannot be blank'
   },
+  type: {
+    type: String,
+    enum: type,
+    default: 'scraper',
+    trim: true,
+    required: 'Crawler type cannot be blank'
+  },
   status: {
     type: String,
     enum: state,
-    default: 'none',
+    default: 'new',
     trim: true,
     required: 'Status cannot be blank'
   },
-  progress: {
-    process: {
-      type: Number,
-      default: 0,
-      trim: true
-    },
-    total: {
-      type: Number,
-      default: 0,
-      trim: true
-    }
+  nextRunAt: {
+    type: Date,
+    default: Date.now
   },
   archive: {
-    type: String,
-    enum: archive,
-    default: 'no',
+    type: Number,
+    default: 2,
     trim: true,
     required: 'archive cannot be blank'
   },
@@ -193,6 +252,19 @@ var CrawlerSchema = new Schema({
       default: 'manual',
       trim: true,
       required: 'strategy cannot be blank'
+    },
+    content: {
+      type: String,
+      trim: true,
+    }
+  },
+  buffer: {
+    selected: {
+      type: String,
+      enum: buffer,
+      default: 'none',
+      trim: true,
+      required: 'buffer cannot be blank'
     }
   },
   properties: [PropertySchema],
@@ -200,6 +272,10 @@ var CrawlerSchema = new Schema({
     type: Schema.ObjectId,
     ref: 'Crawl'
   }],
+  idx: {
+    type: Schema.ObjectId,
+    ref: 'Idx'
+  },
   basepath: {
     type: String,
     default: '',
@@ -223,18 +299,24 @@ var CrawlerSchema = new Schema({
     },
     errors: []
   },
-  // ignore: {
-  //   resources: {
-  //     type: String,
-  //     default: '\.(css|gif|jpg|png|svg|swf)\nad-stir\.com\nadap\.tv\nadnxs\.com\nadobedtm\.com\nadtech\.de\nadtechjp\.com\nadtechus\.com\nadvg\.jp\nakamai\.net\namazonaws\.com\nbidswitch\.net\nbrightcove\.co\.jp\nbtstatic\.com\ncasalemedia\.com\ncloudflare\.com\ncloudfront\.com\ncontextweb\.com\ncriteo\.com\ncriteo\.net\ndemdex\.net\ndeqwas\.net\ndoubleclick\.net\nfacebook\.com\nfacebook\.net\nfbcdn\.net\nfout\.jp\ngetpocket\.com\ngoogle-analytics\.com\ngoogle\.co\.jp\ngoogle\.com\ngoogleadservices\.com\ngoogleapis\.com\ngooglesyndication\.com\ngoogletagmanager\.com\ngravatar\.com\ngstatic\.com\nhatena\.ne\.jp\ni-mobile\.net\nimpact-ad\.net\ninstagramfollowbutton\.com\nkaizenplatform\.net\nkeyword-match\.com\nlijit\.com\nmicroad\.jp\nnakanohito\.jp\nomtrdc\.net\nopenx\.net\nptengine\.jp\npubmatic\.com\nrtoaster\.jp\nrubiconproject\.net\nsharethrough\.com\nt\.co\ntaboola\.com\ntapad\.com\nthatsping\.com\nthebrighttag\.com\ntribalfusion\.com\nturn\.com\ntwitter\.com\nverisign\.com\n[a-z]{1,2}[0-9]{1,2}\.yahoo\.co\.jp\nyahooapis\.jp\nyimg\.jp\nyjtag\.jp',
-  //     trim: true
-  //   },
-  //   regexp: {
-  //     type: Boolean,
-  //     default: true,
-  //     trim: true
-  //   }
-  // }
+  emulate: {
+    device: {
+      type: String,
+      enum: devices,
+      default: 'macSafari'
+    }
+  },
+  capture: {
+    enable: {
+      type: Boolean,
+      default: false,
+    },
+    path: {
+      type: String,
+      default: 'uploads/',
+      required: 'capture save path cannot be blank'
+    }
+  },
   user: {
     type: Schema.ObjectId,
     ref: 'User'

@@ -18,18 +18,21 @@
         </strong>
       </p>
       <small class="text-muted">
-        <span>Source URL : <a href="{{crawler.url}}" target="_blank">{{crawler.url}}</a> ─ </span>
+        <span>Source URL : <a href="{{crawler.url}}" target="_blank">{{crawler.url}}</a> ─ </span>[
         <a href="/api/crawlers/{{crawler._id}}/data.json" target="_blank">json</a> | 
-        <a href="/api/crawlers/{{crawler._id}}/data.csv" target="_blank">csv</a>
-      </small></br>
+        <a href="/api/crawlers/{{crawler._id}}/data.csv" target="_blank">csv</a> ]
+      </small>
       <small>
         <em class="text-muted">
-          Created at
+           ─ Created at
           <span ng-bind="crawler.created | date:'yyyy-MM-dd HH:mm:ss Z'"></span>
           by
           <span ng-bind="crawler.user.displayName"></span>
         </em>
       </small>
+      <p class="text-muted">
+        <small>{{crawler.description}}</small>
+      </p>
     </div>
     <div class="col-md-2 text-right">
       <div ng-show="authentication.user._id == crawler.user._id">
@@ -43,18 +46,29 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-md-5">
+    <div class="col-md-6">
       <i class="glyphicon glyphicon-info-sign"></i> <strong><span class="" ng-bind="data.status | uppercase"></span></strong>
-      <small ng-hide="data.progress.total == 0"> - Crawled: {{data.progress.process}} / Scheduled: {{data.progress.total}}</small>
-      <span ng-show="data.properties.length >= 1">
+      <span ng-if="data.frequency.selected != 'manual'">
+        <small class="text-muted"> - <i class="glyphicon glyphicon-time"></i> <span ng-bind="data.nextRunAt | date:'yyyy-MM-dd HH:mm Z'"></span></small>
+      </span>
+      <span ng-if="data.status =='new' || data.status =='complete' || data.status =='partial'">
         <a class="btn btn-link btn-xs" ng-click="now()" ng-show="authentication.user._id == crawler.user._id">
           <i class="glyphicon glyphicon-play"></i> Crawl Now
         </a>
       </span>
+      <span>
+        <a class="btn btn-link btn-xs" ng-click="clear()">
+          <i class="glyphicon glyphicon-stop"></i> Clear
+        </a>
+      </span>
+      <span ng-if="data.status == 'progress'">
+        <small> - Crawled: {{data.crawls[0].progress.process}}</small>
+        <small ng-hide="data.forwarding.path"> / Scheduled: {{data.crawls[0].progress.total}}</small>
+      </span>
     </div>
-    <div class="col-md-7">
-      <div ng-hide="data.progress.total == 0">
-        <progressbar max="data.progress.total" value="data.progress.process" type="info"><span style="color:white; white-space:nowrap;" ng-hide="data.progress.process == 0">{{100 * data.progress.process / data.progress.total | number:0}}%</span></progressbar>
+    <div class="col-md-6">
+      <div ng-hide="data.crawls[0].progress.total == 0 || data.forwarding.path">
+        <progressbar max="data.crawls[0].progress.total" value="data.crawls[0].progress.process" type="info"><span style="color:white; white-space:nowrap;" ng-hide="data.crawls[0].progress.process == 0">{{100 * data.crawls[0].progress.process / data.crawls[0].progress.total | number:0}}%</span></progressbar>
       </div>
     </div>
   </div>

@@ -13,33 +13,25 @@ winston.add(winston.transports.MongoDB, {
   options: config.db.options,
   collection: 'logs',
   capped: true,
+  cappedSize: 10000000,
+  cappedMax: 10000,
   handleExceptions: true,
   humanReadableUnhandledException: true
 });
-
-/*winston.add(
-  require('winston-daily-rotate-file'), {
-    name: 'info-file',
-    datePattern: '.yyyy-MM-dd.log',
-    filename: 'logs/filelog-info',
-    level: 'info',
-    json: true,
-    eol: '\n',
-    timestamp: true
-  }
-);
-
-winston.add(
-  require('winston-daily-rotate-file'), {
-    name: 'error-file',
-    datePattern: '.yyyy-MM-dd.log',
-    filename: 'logs/filelog-error',
-    level: 'error',
-    json: true,
-    eol: '\n',
-    timestamp: true
-  }
-);*/
+// winston.loggers.add('logs',{
+//   transports : [
+//     new (winston.transports.MongoDB)({
+//       db: config.db.uri,
+//       options: config.db.options,
+//       collection: 'logs',
+//       capped: true,
+//       cappedSize: 10000000,
+//       cappedMax: 10000,
+//       handleExceptions: true,
+//       humanReadableUnhandledException: true
+//     }),
+//   ]
+// });
 
 winston.remove(
   winston.transports.Console
@@ -52,18 +44,19 @@ winston.add(
   }
 );
 
+// var logger = winston.get('logs');
 
-exports.log = function (mess, level) {
+exports.log = function (level, mess, meta) {
   if (level === 'error') {
-    winston.error(mess);
+    winston.error(mess, meta);
   } else if (level === 'warn') {
-    winston.warn(mess);
+    winston.warn(mess, meta);
   } else if (level === 'notice' || level === 'info') {
-    winston.info(mess);
+    winston.info(mess, meta);
   } else if (level === 'debug') {
-    winston.debug(mess);
+    winston.debug(mess, meta);
   } else {
-    winston.debug(mess);
+    winston.debug(mess, meta);
   }
 };
 

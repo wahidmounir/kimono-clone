@@ -23,15 +23,19 @@
   </div>
   
   <div class="col-md-12">
-    <tabset>
-      <tab heading="Profile">
-        <form name="crawlerForm" class="form-horizontal" ng-submit="update(crawlerForm.$valid)" novalidate>
+    <form name="crawlerForm" class="form-horizontal" ng-submit="update(crawlerForm.$valid)" novalidate>
+      <tabset>
+
+        <!--
+          Profile
+        -->
+        <tab heading="Profile">
           <fieldset>
             </br>
             <div class="form-group" show-errors>
               <label for="name" class="col-md-2 control-label">API Name</label>
               <div class="col-md-10">
-                <input name="name" type="text" ng-model="crawler.name" id="name" class="form-control" placeholder="Title" required>
+                <input name="name" type="text" ng-model="crawler.name" id="" class="form-control" placeholder="Title" required>
                 <div ng-messages="crawlerForm.name.$error" role="alert">
                   <p class="help-block error-text" ng-message="required">name is required.</p>
                 </div>
@@ -46,6 +50,22 @@
                 </div>
               </div>
             </div>
+            <div class="form-group">
+              <label for="description" class="col-md-2 control-label">Description</label>
+              <div class="col-md-10">
+                <textarea ng-model="crawler.description" class="form-control" placeholder="Description"  rows="5"></textarea>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="type" class="col-md-2 control-label">Type</label>
+              <div class="radio col-md-10">
+                <label><input type="radio" ng-model="crawler.type" value="scraper">Scraper</label>
+                <label><input type="radio" ng-model="crawler.type" value="indexer">Indexer</label>
+              </div>
+            </div>
+            
+            <hr>
+            
             <div class="row">
               <div class="col-md-2">
               </div>
@@ -54,17 +74,21 @@
                   <a class="btn" type="button" ui-sref="crawlers.view({crawlerId: crawler._id})">Cancel</a>
                   <input type="submit" value="Update" class="btn btn-default">
                 </div>
+                <div ng-show="success" class="text-success">
+                  <strong ng-bind="success"></strong>
+                </div>
                 <div ng-show="error" class="text-danger">
                   <strong ng-bind="error"></strong>
                 </div>
               </div>
             </div>
           </fieldset>
-        </form>
-      </tab>
-      
-      <tab heading="Properties">
-        <form name="crawlerForm" class="form-horizontal" ng-submit="update(crawlerForm.$valid)" novalidate>
+        </tab>
+        
+        <!--
+          Properties
+        -->
+        <tab heading="Properties">
           <fieldset>
             </br>
             <h4>Base Selector</h4>
@@ -73,14 +97,16 @@
             </div>
             </br>
         
-            <h4>Defined Properties</h4>
+            <h4>Property Definition</h4>
             <table class="table">
-              <thead>
+              <thead class="row">
                 <th> </th>
                 <th>#</th>
-                <th>Property Name</th>
-                <th>CSS Selector</th>
-                <th>Attribute</th>
+                <th class="col-md-2">Name</th>
+                <th class="col-md-5">Selector</th>
+                <th class="col-md-2">RegExp</th>
+                <th class="col-md-1">Index</th>
+                <th ng-if="crawler.type == 'indexer'">Deep Indexing</th>
                 <th> </th>
               </thead>
               <tbody ui-sortable ng-model="crawler.properties">
@@ -92,22 +118,50 @@
                     <label class="control-label">{{crawler.properties[$index].sort = $index}}</label>
                   </td>
                   <td>
-                    <input type="text" ng-model="crawler.properties[$index].name" class="form-control">
+                      <input type="text" ng-model="crawler.properties[$index].name" class="form-control">
                   </td>
                   <td>
-                    <input type="text" ng-model="crawler.properties[$index].path" class="form-control">
+                    <div>
+                      <input type="text" ng-model="crawler.properties[$index].path" class="form-control">
+                    </div>
+                    <div>
+                      <label class="checkbox-inline"><input type="checkbox" ng-model="crawler.properties[$index].matches.text">text</label>
+                      <label class="checkbox-inline"><input type="checkbox" ng-model="crawler.properties[$index].matches.href">href </label>
+                      <label class="checkbox-inline"><input type="checkbox" ng-model="crawler.properties[$index].matches.src">src </label>
+                      <label class="checkbox-inline"><input type="checkbox" ng-model="crawler.properties[$index].matches.alt">alt </label>
+                      <label class="checkbox-inline"><input type="checkbox" ng-model="crawler.properties[$index].matches.content">content </label>
+                      <label class="checkbox-inline"><input type="checkbox" ng-model="crawler.properties[$index].matches.html">html </label>
+                    </div>
                   </td>
-                  <td class="form-inline">
+
+                  <td>
+                    <input type="text" ng-model="crawler.properties[$index].regexp" class="form-control">
+                  </td>
+                  <td>
                     <div class="checkbox">
-                      <label><input type="checkbox" ng-model="crawler.properties[$index].matches.text">innnerText</label>
-                      <label><input type="checkbox" ng-model="crawler.properties[$index].matches.href">href </label>
-                      <label><input type="checkbox" ng-model="crawler.properties[$index].matches.src">src </label>
-                      <label><input type="checkbox" ng-model="crawler.properties[$index].matches.alt">alt </label>
-                      <label><input type="checkbox" ng-model="crawler.properties[$index].matches.content">content </label>
+                      <label><input type="checkbox" ng-model="crawler.properties[$index].indexing.multi">Multi</label>
+                    </div>
+                    <div class="checkbox">
+                      <label><input type="checkbox" ng-model="crawler.properties[$index].indexing.no">No</label>
+                    </div>
+                  </td>
+                  <td ng-if="crawler.type == 'indexer'">
+                    <div class="checkbox">
+                      <label><input type="checkbox" ng-model="crawler.properties[$index].deep.enable">Enable</label>
+                    </div>
+                    <div class="form-inline" ng-if="crawler.properties[$index].deep.enable">
+                      Depth
+                      <input type="number" min="0" max="100" placeholder="0" ng-model="crawler.properties[$index].deep.depth" class="form-control" style="width:70px;"/>
+                    </div>
+                    <div class="checkbox" ng-if="crawler.properties[$index].deep.enable">
+                      <label><input type="checkbox" ng-model="crawler.properties[$index].deep.force">Force</label>
                     </div>
                   </td>
                   <td>
-                    <button type="button" ng-click="delete(crawler.properties[$index])" class="btn btn-default">Delete</button>
+                    <span ng-click="delete(crawler.properties[$index])"
+                          class="control-label glyphicon glyphicon-remove text-muted" 
+                          style="cursor: pointer; pointer-events: all;"
+                          uib-tooltip="delete"></span>
                   </td>
                 </tr>
                 <tr ng-if="crawler.properties == 0">
@@ -118,23 +172,51 @@
               </tbody>
             </table>
             
-            <h4>Adding New Property</h4>
+            <h4>Add Property</h4>
             <table class="table">
               <tbody>
-                <tr ng-repeat="itemToAdd in itemsToAdd" class="form-group">
+                <tr ng-repeat="itemToAdd in itemsToAdd" class="form-group row">
                   <td>
-                    <input type="text" ng-model="itemToAdd.name" class="form-control" placeholder="Property Name" />
+                    <span ng-click="deleteItem($index)"
+                          class="control-label glyphicon glyphicon-remove text-muted" 
+                          style="cursor: pointer; pointer-events: all;"
+                          uib-tooltip="delete"></span>
                   </td>
-                  <td>
-                    <input type="text" ng-model="itemToAdd.path" class="form-control" placeholder="CSS Selector" />
+                  <td class="col-md-2">
+                    <input type="text" ng-model="itemToAdd.name" class="form-control" placeholder="Name" />
                   </td>
-                  <td class="form-inline">
+                  <td class="col-md-5">
+                    <div>
+                      <input type="text" ng-model="itemToAdd.path" class="form-control" placeholder="CSS Selector" />
+                    </div>
+                    <div>
+                      <label class="checkbox-inline"><input type="checkbox" ng-model="itemToAdd.matches.text">text</label>
+                      <label class="checkbox-inline"><input type="checkbox" ng-model="itemToAdd.matches.href">href</label>
+                      <label class="checkbox-inline"><input type="checkbox" ng-model="itemToAdd.matches.src">src</label>
+                      <label class="checkbox-inline"><input type="checkbox" ng-model="itemToAdd.matches.alt">alt</label>
+                      <label class="checkbox-inline"><input type="checkbox" ng-model="itemToAdd.matches.content">content</label>
+                      <label class="checkbox-inline"><input type="checkbox" ng-model="itemToAdd.matches.html">html</label>
+                    </div>
+                  </td>
+                  <td class="col-md-2">
+                    <input type="text" ng-model="itemToAdd.regexp" class="form-control" placeholder="RegExp">
+                  </td>
+                  <td class="col-md-1">
                     <div class="checkbox">
-                      <label><input type="checkbox" ng-model="itemToAdd.matches.text" class="checkbox">innnerText</label>
-                      <label><input type="checkbox" ng-model="itemToAdd.matches.href" class="checkbox">href</label>
-                      <label><input type="checkbox" ng-model="itemToAdd.matches.src" class="checkbox">src</label>
-                      <label><input type="checkbox" ng-model="itemToAdd.matches.alt" class="checkbox">alt</label>
-                      <label><input type="checkbox" ng-model="itemToAdd.matches.content" class="checkbox">content</label>
+                      <label><input type="checkbox" ng-model="itemToAdd.indexing.multi">Multi</label><br>
+                      <label><input type="checkbox" ng-model="itemToAdd.indexing.no">No</label><br>
+                    </div>
+                  </td>
+                  <td ng-if="crawler.type == 'indexer'">
+                    <div class="checkbox">
+                      <label><input type="checkbox" ng-model="itemToAdd.deep.enable">Enable</label>
+                    </div>
+                    <div class="form-inline" ng-if="itemToAdd.deep.enable">
+                      Depth
+                      <input type="number" min="0" max="100" placeholder="0" ng-model="itemToAdd.deep.depth" class="form-control" style="width:70px;"/>
+                    </div>
+                    <div class="checkbox" ng-if="itemToAdd.deep.enable">
+                      <label><input type="checkbox" ng-model="itemToAdd.deep.force">Force</label>
                     </div>
                   </td>
                   <td>
@@ -144,36 +226,40 @@
               </tbody>
               <tfoot>
                 <tr>
-                  <td colspan="5">
+                  <td colspan="8">
                     <a ng-click="addNew()">Add new</a>
                   </td>
                 </tr>
               </tfoot>
             </table>
             
+            <hr>
+            
             <div>
               <div class="form-group">
                 <a class="btn" type="button" ui-sref="crawlers.view({crawlerId: crawler._id})">Cancel</a>
                 <input type="submit" value="Update" class="btn btn-default">
+              </div>
+              <div ng-show="success" class="text-success">
+                <strong ng-bind="success"></strong>
               </div>
               <div ng-show="error" class="text-danger">
                 <strong ng-bind="error"></strong>
               </div>
             </div>
           </fieldset>
-        </form>
-      </tab>
-          
-      <tab heading="Crawl Setting">
-        <form name="crawlerForm" class="form-horizontal" ng-submit="update(crawlerForm.$valid)" novalidate>
+        </tab>
+        
+        <!--
+          Crawl Setting
+        -->
+        <tab heading="Crawl Setting">
           <fieldset>
             </br>
             <div class="form-group" show-errors>
-              <label for="archive" class="col-md-2 control-label">Archiving</label>
+              <label for="archive" class="col-md-2 control-label">Archive Range</label>
               <div class="col-md-10">
-                <select ng-model="crawler.archive" name="archive" class="form-control">
-                  <option ng-repeat="option in archive.options" value="{{option.id}}">{{option.name}}</option>
-                </select>
+                <input type="number" min="0" max="10" placeholder="0" ng-model="crawler.archive" class="form-control"/>
                 <div ng-messages="crawlerForm.archive.$error" role="alert">
                   <p class="help-block error-text" ng-message="required">"Historical Archiving" is required.</p>
                 </div>
@@ -202,9 +288,6 @@
                         {{p.param}}
                       </td>
                       <td>
-                        <input type="text" ng-model="crawler.strategy.content.parameter[$index].exp" class="form-control" placeholder="Expression" />
-                      </td>
-                      <td>
                         <select ng-model="crawler.strategy.content.parameter[$index].behavior" name="behavior" class="form-control" ng-options="option.id as option.name for option in behavior.options">
                         </select>
                       </td>
@@ -212,6 +295,9 @@
                         <input type="text" ng-model="crawler.strategy.content.parameter[$index].content.list"  ng-if="crawler.strategy.content.parameter[$index].behavior == 'list'" class="form-control"/>
                         <input type="number" min="0" max="999" placeholder="0" ng-model="crawler.strategy.content.parameter[$index].content.start" ng-if="crawler.strategy.content.parameter[$index].behavior == 'range'" class="form-control" />
                         <input type="number" min="0" max="999" placeholder="0" ng-model="crawler.strategy.content.parameter[$index].content.end" ng-if="crawler.strategy.content.parameter[$index].behavior == 'range'" class="form-control" />
+                      </td>
+                      <td>
+                        <input type="text" ng-model="crawler.strategy.content.parameter[$index].exp" class="form-control" placeholder="Expression" />
                       </td>
                     </tr>
                   </tbody>
@@ -228,7 +314,7 @@
             
             <div class="form-group" show-errors>
               <label for="frequency" class="col-md-2 control-label">Crawl Freqency</label>
-              <div class="col-md-10">
+              <div class="col-md-2">
                 <select ng-model="crawler.frequency.selected" name="frequency" class="form-control">
                   <option ng-repeat="option in frequency.options" value="{{option.id}}">{{option.name}}</option>
                 </select>
@@ -236,8 +322,23 @@
                   <p class="help-block error-text" ng-message="required">"Crawl Freqency" is required.</p>
                 </div>
               </div>
+              <div class="col-md-8">
+                <input type="text" placeholder="Cron format here" ng-model="crawler.frequency.content" ng-if="crawler.frequency.selected == 'specific'" class="form-control" />
+              </div>
             </div>
             
+            <div class="form-group" show-errors>
+              <label for="buffer" class="col-md-2 control-label">Buffer Range</label>
+              <div class="col-md-2">
+                <select ng-model="crawler.buffer.selected" name="buffer" class="form-control">
+                  <option ng-repeat="option in buffer.options" value="{{option.id}}">{{option.name}}</option>
+                </select>
+                <div ng-messages="crawlerForm.buffer.$error" role="alert">
+                  <p class="help-block error-text" ng-message="required">"Buffer Range" is required.</p>
+                </div>
+              </div>
+            </div>
+
             <div class="form-group">
               <label class="col-md-2 control-label">Forwarding</label>
               <div class="col-md-2 text-right">
@@ -255,7 +356,101 @@
               </div>
             </div>
             
-           <div class="row">
+            <hr>
+            
+            <div class="row">
+              <div class="col-md-2">
+              </div>
+              <div class="col-md-10">
+                <div class="form-group">
+                  <a class="btn" type="button" ui-sref="crawlers.view({crawlerId: crawler._id})">Cancel</a>
+                  <input type="submit" value="Update" class="btn btn-default">
+                </div>
+                <div ng-show="success" class="text-success">
+                  <strong ng-bind="success"></strong>
+                </div>
+                <div ng-show="error" class="text-danger">
+                  <strong ng-bind="error"></strong>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+        </tab>
+            
+        <!--
+          Filter Script
+        -->
+        <tab heading="Filter Script" ng-click="prepareEditor();getCrawledRows();show = true">
+          <div class="col-md-6">
+            <fieldset>
+              <div class="form-group">
+              </br>
+                <label for="filter">Filter Script</label>
+                <textarea id="editor" ng-model="crawler.filter.source" class="form-control" placeholder="source"  rows="10"></textarea>
+              </div>
+              <div class="form-group">
+                <input type="button" ng-click="updateFilter()" value="Save" class="btn btn-default">
+              </div>
+              <div ng-if="crawler.filter.errors.length >= 1">
+                <div ng-repeat="error in crawler.filter.errors">
+                  <p class="help-block">{{error.reason}}</p>
+                </div>
+              </div>
+              <div ng-show="success" class="text-success">
+                <strong ng-bind="success"></strong>
+              </div>
+            </fieldset>
+          </div>
+
+          <div class="col-md-6">
+            </br>
+            <label for="filter">Preview</label>
+            <pre ng-style="{height:'400px', overflow:'scroll'}">
+              <small>{{crawlData|json}}</small>
+            </pre>
+          </div>
+        </tab>
+        
+        <!--
+          Advanced Setting
+        -->
+        <tab heading="Advanced Setting">
+          <fieldset>
+            <div class="row">
+              </br>
+              <h4>Emulation</h4>
+              <div class="form-group">
+                <label class="col-md-2 control-label">Device</label>
+                <div class="col-md-10">
+                  <select ng-model="crawler.emulate.device" class="form-control" ng-options="option.id as option.name for option in devices.options">
+                  </select>
+                </div>
+              </div>
+            </div>
+            
+            <div class="row">
+              </br>
+              <h4>Debugging</h4>
+              <div class="form-group show-errors">
+                <label class="col-md-2 control-label">Screenshot Setting</label>
+                <div class="col-md-2 checkbox">
+                    <label><input type="checkbox" ng-model="crawler.capture.enable">Enable Screenshot</label>
+                </div>
+                <div class="col-md-1 text-right">
+                  <label class="control-label" for="savepath">Path</label>
+                </div>
+                <div class="col-md-7">
+                  <input type="text" name="savepath" ng-model="crawler.capture.path" class="form-control" required>
+                  <div ng-messages="crawlerForm.savepath.$error" role="alert">
+                    <p class="help-block error-text" ng-message="required">Captured image save path is required.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <hr>
+            
+            <div class="row">
               <div class="col-md-2">
               </div>
               <div class="col-md-10">
@@ -266,41 +461,14 @@
                 <div ng-show="error" class="text-danger">
                   <strong ng-bind="error"></strong>
                 </div>
+                <div ng-show="success" class="text-success">
+                  <strong ng-bind="success"></strong>
+                </div>
               </div>
             </div>
           </fieldset>
-        </form>
-      </tab>
-          
-      <tab heading="Filter Script" ng-click="prepareEditor();getCrawledRows();show = true">
-        <div class="col-md-6">
-          <form name="crawlerForm" class="form-horizontal" ng-submit="updateFilter()" novalidate>
-            <fieldset>
-              <div class="form-group">
-              </br>
-                <label for="filter">Filter Script</label>
-                <textarea id="editor" ng-model="crawler.filter.source" class="form-control" placeholder="source"  rows="10"></textarea>
-              </div>
-              <div ng-if="crawler.filter.errors.length >= 1">
-                <div ng-repeat="error in crawler.filter.errors">
-                  <p class="help-block">{{error.reason}}</p>
-                </div>
-              </div>
-              <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-default">
-              </div>
-            </fieldset>
-          </form>
-        </div>
-
-        <div class="col-md-6">
-          </br>
-          <label for="filter">Preview</label>
-          <pre ng-style="{height:'400px', overflow:'scroll'}">
-            <small>{{crawlData|json}}</small>
-          </pre>
-        </div>
-      </tab>
-    </tabset>
+        </tab>
+      </tabset>
+    </form>
   </div>
 </section>

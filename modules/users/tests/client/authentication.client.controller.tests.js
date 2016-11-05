@@ -39,11 +39,14 @@
         $stateParams = _$stateParams_;
         $httpBackend = _$httpBackend_;
         $location = _$location_;
-
+        
         // Initialize the Authentication controller
         AuthenticationController = $controller('AuthenticationController', {
           $scope: scope
         });
+
+        $httpBackend.expect('POST', "/api/recaptcha/verify").respond(200, {error:0});
+
       }));
 
       describe('$scope.signin()', function () {
@@ -136,6 +139,8 @@
         AuthenticationController = $controller('AuthenticationController', {
           $scope: scope
         });
+        
+        $httpBackend.expect('POST', "/api/recaptcha/verify").respond(200, {error:0});
       }));
 
       it('should be redirected to home', function () {

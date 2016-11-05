@@ -57,14 +57,33 @@ module.exports = {
     sandbox: false
   },
   mailer: {
-    from: process.env.MAILER_FROM || 'MAILER_FROM',
+    from: 'meganekicksys@gmail.com' || process.env.MAILER_FROM,
     options: {
-      service: process.env.MAILER_SERVICE_PROVIDER || 'MAILER_SERVICE_PROVIDER',
+      service: 'Gmail' || process.env.MAILER_SERVICE_PROVIDER,
+      debug: false,
       auth: {
-        user: process.env.MAILER_EMAIL_ID || 'MAILER_EMAIL_ID',
-        pass: process.env.MAILER_PASSWORD || 'MAILER_PASSWORD'
+         user: 'meganekicksys@gmail.com',
+         pass: '?4527?8V'
       }
     }
   },
-  seedDB: process.env.MONGO_SEED || false
+  seedDB: process.env.MONGO_SEED || false,
+
+  // Wacwac P/F - administration setting
+  admin: {
+    sysreport: { // email reporting
+      enable: true,
+      term: '1 day'
+    },
+    crawlreport: { // email reporting
+      enable: true,
+      term: '8 hours'
+    }
+  },
+
+  // [Kimono-clone] Agenda settings
+  agenda: {
+    collection: 'agendajobs',
+    processEvery: '10 second'
+  },
 };

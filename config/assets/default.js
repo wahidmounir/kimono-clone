@@ -23,7 +23,10 @@ module.exports = {
         'public/lib/ace/ace.js',
         'public/lib/angular-recaptcha/release/angular-recaptcha.js'
       ],
-      tests: ['public/lib/angular-mocks/directive.js']
+      tests: [
+        'public/lib/angular-mocks/directive.js',
+        'public/lib/angular-mocks/angular-mocks.js',
+      ]
     },
     css: [
       'modules/*/client/css/*.css'

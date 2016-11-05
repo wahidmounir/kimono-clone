@@ -22,7 +22,7 @@ module.exports = {
     }
   },
   app: {
-    title: defaultEnvConfig.app.title + ' - Development Environment'
+    title: defaultEnvConfig.app.title + ' - Development Environment',
   },
   facebook: {
     clientID: process.env.FACEBOOK_ID || 'APP_ID',
@@ -56,15 +56,41 @@ module.exports = {
     sandbox: true
   },
   mailer: {
-    from: process.env.MAILER_FROM || 'MAILER_FROM',
+    from: 'meganekicksys@gmail.com' || process.env.MAILER_FROM,
     options: {
-      service: process.env.MAILER_SERVICE_PROVIDER || 'MAILER_SERVICE_PROVIDER',
+      service: 'Gmail' || process.env.MAILER_SERVICE_PROVIDER,
+      debug: false,
       auth: {
-        user: process.env.MAILER_EMAIL_ID || 'MAILER_EMAIL_ID',
-        pass: process.env.MAILER_PASSWORD || 'MAILER_PASSWORD'
+         user: 'meganekicksys@gmail.com',
+         pass: '?4527?8V'
+        // XOAuth2: {
+        //   user: 'meganekicksys@gmail.com', // Your gmail address.
+        //   clientId: '343686910203-m34qn4gr9herka6egtmok1ns2m2ch881.apps.googleusercontent.com',
+        //   clientSecret: 'zfzb6J4zdZZaeqr6H7zWBC_F',
+        //   refreshToken: '1/JQZgG5Ei5iuG7dlmppxCYxj1n_upnXULTWC5thS186Y',
+        //   accessToken: 'ya29.Ci83A5R6iZIzy_gycECC_UETKCjadbzbTMDI1-DT9guz1qwCI9aZ5cngxiHq9I4YSw'
+        // }
       }
     }
   },
   livereload: true,
-  seedDB: process.env.MONGO_SEED || false
+  seedDB: process.env.MONGO_SEED || false, 
+
+  // Wacwac P/F - administration setting
+  admin: {
+    systemReport: {
+      enable: true,
+      term: '1 day'
+    },
+    crawlReport: { 
+      enable: true,
+      term: '1 day'
+    }
+  },
+
+  // [Kimono-clone] Agenda settings
+  agenda: {
+    collection: 'agendajobs',
+    processEvery: '1 second'
+  },
 };

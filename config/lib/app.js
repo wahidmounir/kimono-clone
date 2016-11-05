@@ -6,7 +6,8 @@
 var config = require('../config'),
   mongoose = require('./mongoose'),
   express = require('./express'),
-  chalk = require('chalk');
+  chalk = require('chalk'),
+  csv = require('express-csv');
 
 // Initialize Models
 mongoose.loadModels();
@@ -22,6 +23,9 @@ module.exports.loadModels = function loadModels() {
 
 module.exports.init = function init(callback) {
   mongoose.connect(function (db) {
+    // Start agenda
+    var agenda = require('./agenda');
+
     // Initialize express
     var app = express.init(db);
     if (callback) callback(app, db, config);
@@ -47,7 +51,7 @@ module.exports.start = function start(callback) {
         console.log(chalk.green('HTTPs:\t\t\t\ton'));
       }
       console.log('--');
-
+      
       if (callback) callback(app, db, config);
     });
 

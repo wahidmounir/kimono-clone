@@ -57,5 +57,23 @@ module.exports = {
       }
     }
   },
-  seedDB: process.env.MONGO_SEED || false
+  seedDB: process.env.MONGO_SEED || false,
+
+  // Wacwac P/F - administration setting
+  admin: {
+    systemReport: {
+      enable: false,
+      term: '1 day'
+    },
+    crawlReport: { 
+      enable: false,
+      term: '1 day'
+    }
+  },
+
+  // recaptcha
+  recaptcha: {
+    sitekey: '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
+    secret: '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'
+  }
 };

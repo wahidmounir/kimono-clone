@@ -1,3 +1,8 @@
+<script
+  src="https://www.google.com/recaptcha/api.js?onload=vcRecaptchaApiLoaded&render=explicit"
+  async defer
+></script>
+<script type="text/javascript" src="angular-recaptcha.js"></script>
 <div ng-controller="AuthenticationController">
   <h3 class="col-md-12 text-center">Or with your account</h3>
   <div class="col-xs-offset-2 col-xs-8 col-md-offset-4 col-md-4">
@@ -17,6 +22,17 @@
             <p class="help-block error-text" ng-message="required">Password is required.</p>
           </div>
         </div>
+
+        <div
+            vc-recaptcha
+            ng-model="gRecaptchaResponse"
+            theme="'light'"
+            key="model.key"
+            on-create="setWidgetId(widgetId)"
+            on-success="setResponse(response)"
+            on-expire="cbExpiration()"
+        ></div>
+        
         <div class="text-center form-group">
           <button type="submit" class="btn btn-primary">Sign in</button>
           &nbsp; or&nbsp;

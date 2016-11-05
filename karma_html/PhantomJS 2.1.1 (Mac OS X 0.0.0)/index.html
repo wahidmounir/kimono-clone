@@ -1,0 +1,676 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>PhantomJS 2.1.1 (Mac OS X 0.0.0)</title>
+<style>
+body { background-color: #eeeeee; padding: 0; margin: 5px; overflow-y: scroll; }
+#HTMLReporter h1 { font-size: 12px; font-weight: normal; text-align: right; margin: 10px 0 10px 0 !important; }
+#HTMLReporter { font-size: 11px; font-family: Monaco, "Lucida Console", monospace; line-height: 14px; color: #333333; }
+#HTMLReporter a { text-decoration: none; }
+#HTMLReporter a:hover { text-decoration: underline; }
+#HTMLReporter p, #HTMLReporter h1, #HTMLReporter h2, #HTMLReporter h3, #HTMLReporter h4, #HTMLReporter h5, #HTMLReporter h6 { margin: 0; line-height: 14px; }
+#HTMLReporter .banner, #HTMLReporter .symbolSummary, #HTMLReporter .summary, #HTMLReporter .resultMessage, #HTMLReporter .specDetail .description, #HTMLReporter .alert .bar, #HTMLReporter .stackTrace { padding-left: 9px; padding-right: 9px; }
+
+#HTMLReporter #jasmine_content { position: fixed; right: 100%; }
+#HTMLReporter .version { color: #aaaaaa; }
+#HTMLReporter .banner { margin-top: 14px; }
+#HTMLReporter .duration { color: #aaaaaa; float: right; }
+#HTMLReporter .exceptions { color: #fff; float: right; margin-top: 5px; margin-right: 5px; }
+#HTMLReporter .bar { line-height: 28px; font-size: 14px; display: block; color: #eee; }
+#HTMLReporter .runningAlert { background-color: #666666; }
+#HTMLReporter .skippedAlert { background-color: #aaaaaa; }
+#HTMLReporter .skippedAlert:first-child { background-color: #333333; }
+#HTMLReporter .skippedAlert:hover { text-decoration: none; color: white; text-decoration: underline; }
+#HTMLReporter .passingAlert { background-color: #a6b779; }
+#HTMLReporter .passingAlert:first-child { background-color: #5e7d00; }
+#HTMLReporter .failingAlert { background-color: #cf867e; }
+#HTMLReporter .failingAlert:first-child { background-color: #b03911; }
+#HTMLReporter .results { margin-top: 14px; }
+#HTMLReporter #details { display: none; }
+#HTMLReporter .resultsMenu { color: #999; background-color: #fff; }
+
+#HTMLReporter .summaryMenuItem { font-weight: normal; text-decoration: none; margin-right: 5px; color: #333; }
+#HTMLReporter .detailsMenuItem { font-weight: normal; text-decoration: none; margin-left: 5px; color: #999; }
+
+#HTMLReporter.showDetails .summaryMenuItem { color: #999; }
+#HTMLReporter.showDetails .detailsMenuItem { color: #333; }
+#HTMLReporter.showDetails .summaryMenuItem:hover { text-decoration: underline; }
+#HTMLReporter             .detailsMenuItem:hover { text-decoration: underline; }
+
+
+#HTMLReporter.showDetails .summary { display: none; }
+#HTMLReporter.showDetails #details { display: block; }
+#HTMLReporter .summary { margin-top: 14px; margin-bottom: 40px; }
+#HTMLReporter .summary .suite .suite, #HTMLReporter .summary .specSummary { margin-left: 14px; }
+#HTMLReporter .summary .specSummary.passed { color: #5e7d00; }
+#HTMLReporter .summary .specSummary.failed { color: #b03911; }
+#HTMLReporter .summary .specSummary.skipped { color: #ba9d37; }
+#HTMLReporter .description + .suite { margin-top: 0; }
+#HTMLReporter .suite { margin-top: 14px; }
+#HTMLReporter .suite a { color: #333333; }
+#HTMLReporter #details .specDetail { margin-bottom: 28px; }
+#HTMLReporter #details .specDetail .description { display: block; color: white; background-color: #b03911; }
+#HTMLReporter .resultMessage { padding-top: 14px; color: #333333; }
+#HTMLReporter .resultMessage span.result { display: block; }
+#HTMLReporter .stackTrace { margin: 5px 0 0 0; max-height: 224px; overflow: auto; 
+    line-height: 18px; color: #666666; border: 1px solid #ddd; background: white; white-space: pre; }
+
+
+.fold-buttons { float: right; }
+.fold-buttons a { color: #fff; font-size: 12px; }
+.fold-buttons { display: none } 
+#HTMLReporter .br { margin-top: 8px; }
+#HTMLReporter .section-starter { font-size: 14px; line-height: 18px }
+#HTMLReporter .summary-section { 
+  cursor: -webkit-zoom-out; cursor: -moz-zoom-out; cursor: zoom-out; 
+  background: #fafafa; 
+  padding: 10px; 
+  border-bottom: #eaeaea 1px solid; }
+#HTMLReporter .summary-section.folded { 
+  cursor: -webkit-zoom-in; cursor: -moz-zoom-in; cursor: zoom-in; 
+  padding-bottom: 8px;
+}
+#HTMLReporter .summary-section.folded div { display: none }
+#HTMLReporter .summary-section.folded div.section-starter { display: block }
+/*#HTMLReporter .summary-section:hover { background: #e9e9e9; }*/
+#HTMLReporter .summary-section:hover { background: #f5f5f5; }
+#HTMLReporter .summary-section-totals { 
+  font-size: 11px;
+  display: none; 
+  margin-left: 11px; 
+  overflow: hidden; 
+  position: relative;
+  top: -1px; 
+}
+#HTMLReporter .summary-section.folded .summary-section-totals { display: inline; }
+#HTMLReporter .summary-section-total { color: #fff; vertical-align: baseline; padding: 1px 8px; }
+#HTMLReporter .summary-section-total.passed { background: #5e7d00;  }
+#HTMLReporter .summary-section-total.failed { background: #b03911;  }
+#HTMLReporter .summary-section-total.skipped { background: #ba9d37;  }
+
+#HTMLReporter { font-size: 12px; line-height: 18px; } /*larget font-size*/
+
+</style>
+</head>
+
+<body id="HTMLReporter" class="html-reporter">
+<h1>Tested in PhantomJS 2.1.1 (Mac OS X 0.0.0) on Fri Sep 16 2016</h1>
+
+<div class="alert">
+
+
+
+  
+  <span class="passingAlert bar"><span class="fold-buttons"><a href="#" onclick="fold();">Fold</a> | 
+  <a href="#" onclick="unfold();">Unfold</a></span>84 specs, 0 failed, 0 pending</span>
+  
+
+
+</div>
+<div class="results">
+  <div class="summary">
+  
+  
+  
+  
+  
+    <div class="suite passed">
+      <span class="description">HeaderController</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should expose the authentication service</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should expose the $state service</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should default menu to collapsed</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">HeaderController when toggleCollapsibleMenu</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should toggle isCollapsed to non default value</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should then toggle isCollapsed back to default value</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">HeaderController when view state changes</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should set isCollapsed to false</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">HomeController</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should expose the authentication service</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">authInterceptor</span>
+    
+      <div class="specSummary passed">
+      <span class="description">Auth Interceptor should be object</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">Auth Interceptor should contain responseError function</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">httpProvider Interceptor should have authInterceptor</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">authInterceptor Forbidden Interceptor</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should redirect to forbidden route</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">authInterceptor Authorization Interceptor</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should redirect to signIn page for unauthorized access</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">Menus</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should have topbar added</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should have default roles to user and admin</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">Menus addMenu with no options</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should return menu object</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should default roles</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should have empty items</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set shouldRender to shouldRender function handle</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">Menus addMenu with options</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should set items to options.items list</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set roles to options.roles list</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">Menus shouldRender when logged out</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should render if menu is public</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should not render if menu is private</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">Menus shouldRender when logged in menu with * role</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should render</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">Menus shouldRender when logged in menu without * role</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should render if user has same role as menu</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should not render if user has different roles</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">Menus validateMenuExistance when menuId not provided</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should throw menuId error</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">Menus validateMenuExistance when menu does not exist</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should throw no menu error</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">Menus validateMenuExistance when menu exists</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should return truthy</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">Menus removeMenu</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should remove existing menu from menus</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">validates menu existance before removing</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">Menus addMenuItem</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should validate menu existance</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should return the menu</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set menu item shouldRender function</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">Menus addMenuItem with options set</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should add menu item to menu</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set menu item title to options title</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set menu item state to options state</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set menu item type to options type</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set menu item class to options class</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set menu item position to options position</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should call addSubMenuItem for each item in options</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">Menus addMenuItem without options set</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should set menu item type to item</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set menu item title to empty</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set menu item isPublic to false</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set menu item roles to default roles</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set menu item position to 0</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">Menus removeMenuItem</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should return menu object</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should validate menu existance</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should remove sub menu items with same state</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">Menus addSubMenuItem</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should return menu object</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should validate menu existance</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should not add sub menu item to menu item of different state</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set shouldRender</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">Menus addSubMenuItem with options set</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should add sub menu item to menu item</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set title to options title</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set state to options state</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set roles to options roles</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set position to options position</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">Menus addSubMenuItem without optoins set</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should add sub menu item to menu item</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set isPublic to parent isPublic</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set title to blank</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set state to blank</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set roles to parent roles</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set position to 0</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">Menus addSubMenuItem then removeSubMenuItem</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should validate menu existance</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should return menu object</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should remove sub menu item</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">AuthenticationController Logged out user $scope.signin()</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should login with a correct user and password</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should fail to log in with nothing</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should fail to log in with wrong credentials</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">AuthenticationController Logged out user $scope.signup()</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should register with correct data</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should fail to register with duplicate Username</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">AuthenticationController Logged in user</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should be redirected to home</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">PasswordController Logged in user</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should redirect logged in user to home</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">PasswordController Logged out user</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should not redirect to home</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">PasswordController Logged out user askForPasswordReset</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should clear scope.success and scope.error</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">PasswordController Logged out user askForPasswordReset POST error</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should clear form</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set error to response message</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">PasswordController Logged out user askForPasswordReset POST success</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should clear form</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should set success to response message</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">PasswordController Logged out user resetUserPassword</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should clear scope.success and scope.error</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">POST error should set scope.error to response message</span>
+      </div>
+    
+    </div>
+  
+    <div class="suite passed">
+      <span class="description">PasswordController Logged out user resetUserPassword POST success</span>
+    
+      <div class="specSummary passed">
+      <span class="description">should clear password form</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should attach user profile</span>
+      </div>
+    
+      <div class="specSummary passed">
+      <span class="description">should redirect to password reset success view</span>
+      </div>
+    
+    </div>
+  
+  
+</div>
+
+<div id="details">
+  
+</div>
+
+<script>
+
+var folded = false;
+
+document.body.onkeypress = function (e) {
+  if (!e || !e.keyCode) return;
+  switch (e.keyCode) {
+    case 102: toggleFold(); break;
+    case 49: showSummary(); break;
+    
+  }
+};
+
+function showSummary() { document.body.className = "html-reporter showSummary"; }
+function showFailures() { document.body.className = "html-reporter showDetails"; }
+
+function toggleSection(el) {
+  el.className = el.className === 'summary-section' ? 'summary-section folded' : 'summary-section';
+}
+
+function toggleFold() { (folded) ? unfold() : fold(); }
+function fold() {
+  var els = document.querySelectorAll('.summary-section');
+  for (var i = 0; i < els.length; i++) {
+    els[i].className = 'summary-section folded';
+  }
+  folded = true;
+}
+function unfold() {
+  var els = document.querySelectorAll('.summary-section');
+  for (var i = 0; i < els.length; i++) {
+    els[i].className = 'summary-section';
+  }
+  folded = false;
+}
+
+</script>
+
+
+</body>
+</html>
+
